@@ -17,5 +17,13 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/espejosara/backend-lite-sprint13.git"
+  },
+  "bugs": {
+    "url": "https://github.com/espejosara/backend-lite-sprint13/issues"
+  },
+  "homepage": "https://github.com/espejosara/backend-lite-sprint13#readme"
 }
