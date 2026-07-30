@@ -3,6 +3,7 @@ const cors = require("cors");
 
 const productsRoutes = require("./routes/products.routes");
 const authRoutes = require("./routes/auth.routes");
+const reviewsRoutes = require("./routes/reviews.routes");
 
 const app = express();
 
@@ -21,7 +22,15 @@ app.get("/", (req, res) => {
   });
 });
 
+app.use((req, res) => {
+  return res.status(404).json({
+    success: false,
+    error: "Ruta no encontrada",
+  });
+});
+
 app.use("/products", productsRoutes);
 app.use("/auth", authRoutes);
+app.use("/reviews", reviewsRoutes);
 
 module.exports = app;
