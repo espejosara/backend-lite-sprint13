@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "productId": 1,
+    "author": "Sara",
+    "rating": 5,
+    "comment": "Detalles brutales y muy buena pintura."
+  },
+  {
+    "id": 2,
+    "productId": 2,
+    "author": "Luis",
+    "rating": 4,
+    "comment": "La hechicera tiene muy buen acabado en colores."
+  },
+  {
+    "id": 3,
+    "productId": 3,
+    "author": "Marta",
+    "rating": 5,
+    "comment": "El mecha tiene presencia y se ve premium."
+  },
+  {
+    "id": 4,
+    "productId": 4,
+    "author": "Pablo",
+    "rating": 4,
+    "comment": "Buena pose y la base queda muy estable."
+  },
+  {
+    "id": 5,
+    "productId": 5,
+    "author": "Nora",
+    "rating": 5,
+    "comment": "El concepto de sigilo está super logrado."
+  },
+  {
+    "id": 6,
+    "productId": 6,
+    "author": "Elena",
+    "rating": 4,
+    "comment": "Muy bonita, aunque esperaba un poco más de tamaño."
+  },
+  {
+    "id": 7,
+    "productId": 10,
+    "author": "Iván",
+    "rating": 5,
+    "comment": "La paladín es de mis favoritas por la armadura."
+  },
+  {
+    "id": 8,
+    "productId": 14,
+    "author": "Raúl",
+    "rating": 5,
+    "comment": "El caballero oscuro impone muchísimo en vitrina."
+  },
+  {
+    "id": 9,
+    "productId": 17,
+    "author": "Ainhoa",
+    "rating": 4,
+    "comment": "Diseño increíble, alas muy bien logradas."
+  },
+  {
+    "id": 10,
+    "productId": 20,
+    "author": "Diego",
+    "rating": 5,
+    "comment": "Figura top, de colección total."
+  }
+]
