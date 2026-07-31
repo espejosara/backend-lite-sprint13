@@ -2,6 +2,8 @@ const users = require("../data/users.json");
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
+
 const sanitizeUser = (user) => ({
   id: user.id,
   name: user.name,
@@ -10,41 +12,44 @@ const sanitizeUser = (user) => ({
 
 const register = (req, res) => {
   const { name, email, password } = req.body;
+  const cleanName = normalizeText(name);
+  const cleanEmail = normalizeText(email);
+  const cleanPassword = typeof password === "string" ? password : "";
 
-  if (!name || !email || !password) {
+  if (!cleanName || !cleanEmail || !cleanPassword) {
     return res.status(400).json({
       success: false,
-      error: "Name, email and password are required",
+      error: "Nombre, email y contraseña son obligatorios",
     });
   }
 
-  if (!isValidEmail(email)) {
+  if (!isValidEmail(cleanEmail)) {
     return res.status(400).json({
       success: false,
-      error: "Invalid email format",
+      error: "Formato de email inválido",
     });
   }
 
-  if (password.length < 6) {
+  if (cleanPassword.length < 6) {
     return res.status(400).json({
       success: false,
-      error: "Password must be at least 6 characters",
+      error: "La contraseña debe tener al menos 6 caracteres",
     });
   }
 
-  const existingUser = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  const existingUser = users.find((u) => u.email.toLowerCase() === cleanEmail.toLowerCase());
   if (existingUser) {
     return res.status(409).json({
       success: false,
-      error: "Email already registered",
+      error: "El email ya está registrado",
     });
   }
 
   const newUser = {
     id: users.length ? users[users.length - 1].id + 1 : 1,
-    name,
-    email,
-    password,
+    name: cleanName,
+    email: cleanEmail,
+    password: cleanPassword,
   };
 
   users.push(newUser);
@@ -57,19 +62,21 @@ const register = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
+  const cleanEmail = normalizeText(email);
+  const cleanPassword = typeof password === "string" ? password : "";
 
-  if (!email || !password) {
+  if (!cleanEmail || !cleanPassword) {
     return res.status(400).json({
       success: false,
-      error: "Email and password are required",
+      error: "Email y contraseña son obligatorios",
     });
   }
 
-  const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-  if (!user || user.password !== password) {
+  const user = users.find((u) => u.email.toLowerCase() === cleanEmail.toLowerCase());
+  if (!user || user.password !== cleanPassword) {
     return res.status(401).json({
       success: false,
-      error: "Invalid credentials",
+      error: "Credenciales inválidas",
     });
   }
 
