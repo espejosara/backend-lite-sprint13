@@ -22,15 +22,15 @@ app.get("/", (req, res) => {
   });
 });
 
+app.use("/products", productsRoutes);
+app.use("/products", reviewsRoutes);
+app.use("/auth", authRoutes);
+
 app.use((req, res) => {
   return res.status(404).json({
     success: false,
     error: "Ruta no encontrada",
   });
 });
-
-app.use("/products", productsRoutes);
-app.use("/auth", authRoutes);
-app.use("/reviews", reviewsRoutes);
 
 module.exports = app;
