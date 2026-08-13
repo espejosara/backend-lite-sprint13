@@ -1,4 +1,4 @@
-const reviews = require("../data/reviews.json");
+import reviews from "../data/reviews.json" assert { type: "json" };
 
 const parseId = (value) => Number(value);
 
@@ -20,4 +20,4 @@ const getReviewsByProductId = (req, res) => {
   });
 };
 
-module.exports = { getReviewsByProductId };
+export { getReviewsByProductId };

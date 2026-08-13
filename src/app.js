@@ -1,9 +1,9 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 
-const productsRoutes = require("./routes/products.routes");
-const authRoutes = require("./routes/auth.routes");
-const reviewsRoutes = require("./routes/reviews.routes");
+import productsRoutes from "./routes/products.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import reviewsRoutes from "./routes/reviews.routes.js";
 
 const app = express();
 
@@ -33,4 +33,4 @@ app.use((req, res) => {
   });
 });
 
-module.exports = app;
+export default app;

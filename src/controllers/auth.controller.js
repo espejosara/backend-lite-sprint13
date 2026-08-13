@@ -1,4 +1,4 @@
-const users = require("../data/users.json");
+import users from "../data/users.json" assert { type: "json" };
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -86,4 +86,4 @@ const login = (req, res) => {
   });
 };
 
-module.exports = { register, login };
+export { register, login };

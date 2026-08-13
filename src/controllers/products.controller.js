@@ -1,4 +1,4 @@
-const products = require("../data/products.json");
+import products from "../data/products.json" assert { type: "json" };
 
 const parseId = (value) => Number(value);
 
@@ -34,4 +34,4 @@ const getProductById = (req, res) => {
   });
 };
 
-module.exports = { getProducts, getProductById };
+export { getProducts, getProductById };
