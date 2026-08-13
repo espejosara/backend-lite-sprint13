@@ -4,6 +4,7 @@ import cors from "cors";
 import productsRoutes from "./routes/products.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import reviewsRoutes from "./routes/reviews.routes.js";
+import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -26,11 +27,7 @@ app.use("/products", productsRoutes);
 app.use("/products", reviewsRoutes);
 app.use("/auth", authRoutes);
 
-app.use((req, res) => {
-  return res.status(404).json({
-    success: false,
-    error: "Ruta no encontrada",
-  });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;
