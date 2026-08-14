@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { signToken } from "../lib/jwt.js";
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
@@ -13,6 +14,16 @@ const sanitizeUser = (user) => ({
   id: user.id,
   name: user.name,
   email: user.email,
+  role: user.role,
+});
+
+const buildAuthResponse = (user) => ({
+  user: sanitizeUser(user),
+  token: signToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  }),
 });
 
 const registerUser = async ({ name, email, password }) => {
@@ -48,7 +59,7 @@ const registerUser = async ({ name, email, password }) => {
     },
   });
 
-  return sanitizeUser(newUser);
+  return buildAuthResponse(newUser);
 };
 
 const loginUser = async ({ email, password }) => {
@@ -67,7 +78,7 @@ const loginUser = async ({ email, password }) => {
     throw createServiceError(401, "Credenciales inválidas");
   }
 
-  return sanitizeUser(user);
+  return buildAuthResponse(user);
 };
 
 export { registerUser, loginUser };

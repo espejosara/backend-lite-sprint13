@@ -2,11 +2,11 @@ import { loginUser, registerUser } from "../services/auth.service.js";
 
 const register = async (req, res, next) => {
   try {
-    const user = await registerUser(req.body);
+    const payload = await registerUser(req.body);
 
     return res.status(201).json({
       success: true,
-      data: user,
+      data: payload,
     });
   } catch (error) {
     return next(error);
@@ -15,11 +15,11 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const user = await loginUser(req.body);
+    const payload = await loginUser(req.body);
 
     return res.json({
       success: true,
-      data: user,
+      data: payload,
     });
   } catch (error) {
     return next(error);
