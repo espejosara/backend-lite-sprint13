@@ -7,4 +7,26 @@ const findReviewsByProductId = async (productId) => {
   });
 };
 
-export { findReviewsByProductId };
+const createReviewForProduct = async ({ userId, productId, rating, comment, author }) => {
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+  });
+
+  if (!product) {
+    const error = new Error("Producto no encontrado");
+    error.status = 404;
+    throw error;
+  }
+
+  return prisma.review.create({
+    data: {
+      productId,
+      userId,
+      author,
+      rating,
+      comment,
+    },
+  });
+};
+
+export { findReviewsByProductId, createReviewForProduct };
