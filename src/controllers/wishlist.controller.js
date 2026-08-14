@@ -5,16 +5,17 @@ import {
 } from "../services/wishlist.service.js";
 
 const toNumber = (value) => Number(value);
+const buildWishlistResponse = (wishlist) => ({
+  success: true,
+  data: wishlist,
+});
 
 const getWishlist = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const wishlist = getWishlistByUserId(userId);
 
-    return res.json({
-      success: true,
-      data: wishlist,
-    });
+    return res.status(200).json(buildWishlistResponse(wishlist));
   } catch (error) {
     return next(error);
   }
@@ -34,10 +35,7 @@ const createWishlistItem = async (req, res, next) => {
 
     const wishlist = await addWishlistProduct({ userId, productId });
 
-    return res.status(201).json({
-      success: true,
-      data: wishlist,
-    });
+    return res.status(200).json(buildWishlistResponse(wishlist));
   } catch (error) {
     return next(error);
   }
@@ -57,10 +55,7 @@ const deleteWishlistItem = async (req, res, next) => {
 
     const wishlist = removeWishlistProduct({ userId, productId });
 
-    return res.json({
-      success: true,
-      data: wishlist,
-    });
+    return res.status(200).json(buildWishlistResponse(wishlist));
   } catch (error) {
     return next(error);
   }

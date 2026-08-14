@@ -95,6 +95,34 @@ http://localhost:3000
   Requiere token JWT
 - `POST /wishlist/:productId`  
   Requiere token JWT
+- `DELETE /wishlist/:productId`  
+  Requiere token JWT
+
+#### Contrato estable de Wishlist
+
+- Path base único: `/wishlist`
+- Quitar favorito: `DELETE /wishlist/:productId`
+- Mismo JSON de éxito en `GET/POST/DELETE`:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "El Samurai Futurista",
+      "description": "Guerrero con armadura...",
+      "price": 49.99,
+      "imageUrl": "https://..."
+    }
+  ]
+}
+```
+
+- Códigos HTTP:
+- `200` éxito (GET/POST/DELETE)
+- `401` no autenticado/token inválido
+- `404` recurso no encontrado (ruta, producto inexistente o producto no presente en favoritos)
 
 ## Ejemplo de uso
 

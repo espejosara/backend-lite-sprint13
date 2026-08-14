@@ -31,6 +31,7 @@ const addWishlistProduct = async ({ userId, productId }) => {
     wishlist.push({
       id: product.id,
       name: product.name,
+      description: product.description,
       price: Number(product.price),
       imageUrl: product.imageUrl,
     });
@@ -41,6 +42,14 @@ const addWishlistProduct = async ({ userId, productId }) => {
 
 const removeWishlistProduct = ({ userId, productId }) => {
   const wishlist = getOrCreateWishlist(userId);
+  const existsInWishlist = wishlist.some((item) => item.id === productId);
+
+  if (!existsInWishlist) {
+    const error = new Error("Producto no existe en favoritos");
+    error.status = 404;
+    throw error;
+  }
+
   const nextWishlist = wishlist.filter((item) => item.id !== productId);
 
   wishlistsByUser.set(userId, nextWishlist);
