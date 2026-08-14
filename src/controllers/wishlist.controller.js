@@ -1,6 +1,7 @@
 import {
   addWishlistProduct,
   getWishlistByUserId,
+  removeWishlistProduct,
 } from "../services/wishlist.service.js";
 
 const toNumber = (value) => Number(value);
@@ -42,4 +43,27 @@ const createWishlistItem = async (req, res, next) => {
   }
 };
 
-export { getWishlist, createWishlistItem };
+const deleteWishlistItem = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const productId = toNumber(req.params.productId);
+
+    if (Number.isNaN(productId)) {
+      return res.status(400).json({
+        success: false,
+        error: "productId inválido",
+      });
+    }
+
+    const wishlist = removeWishlistProduct({ userId, productId });
+
+    return res.json({
+      success: true,
+      data: wishlist,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { getWishlist, createWishlistItem, deleteWishlistItem };

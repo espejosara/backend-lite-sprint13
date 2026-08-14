@@ -39,4 +39,13 @@ const addWishlistProduct = async ({ userId, productId }) => {
   return wishlist;
 };
 
-export { getWishlistByUserId, addWishlistProduct };
+const removeWishlistProduct = ({ userId, productId }) => {
+  const wishlist = getOrCreateWishlist(userId);
+  const nextWishlist = wishlist.filter((item) => item.id !== productId);
+
+  wishlistsByUser.set(userId, nextWishlist);
+
+  return nextWishlist;
+};
+
+export { getWishlistByUserId, addWishlistProduct, removeWishlistProduct };
