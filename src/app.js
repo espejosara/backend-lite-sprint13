@@ -4,6 +4,8 @@ import cors from "cors";
 import productsRoutes from "./routes/products.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import reviewsRoutes from "./routes/reviews.routes.js";
+import cartRoutes from "./routes/cart.routes.js";
+import wishlistRoutes from "./routes/wishlist.routes.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -26,6 +28,8 @@ app.get("/", (req, res) => {
 app.use("/products", productsRoutes);
 app.use("/products", reviewsRoutes);
 app.use("/auth", authRoutes);
+app.use("/cart", cartRoutes);
+app.use("/wishlist", wishlistRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
