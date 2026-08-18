@@ -10,7 +10,7 @@ const toNumber = (value) => Number(value);
 const getCart = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const cart = getCartByUserId(userId);
+    const cart = await getCartByUserId(userId);
 
     return res.json({
       success: true,
@@ -57,11 +57,11 @@ const deleteCartItem = async (req, res, next) => {
       });
     }
 
-    const cart = removeCartItem({ userId, itemId });
+    await removeCartItem({ userId, itemId });
 
     return res.json({
       success: true,
-      data: cart,
+      data: { message: "Item eliminado del carrito" },
     });
   } catch (error) {
     return next(error);
@@ -71,7 +71,7 @@ const deleteCartItem = async (req, res, next) => {
 const checkout = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const result = checkoutCart(userId);
+    const result = await checkoutCart(userId);
 
     return res.json({
       success: true,
