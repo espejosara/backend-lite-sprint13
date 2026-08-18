@@ -1,27 +1,25 @@
 import {
-  addWishlistProduct,
   getWishlistByUserId,
-  removeWishlistProduct,
+  toggleWishlistItem,
 } from "../services/wishlist.service.js";
 
 const toNumber = (value) => Number(value);
-const buildWishlistResponse = (wishlist) => ({
-  success: true,
-  data: wishlist,
-});
 
 const getWishlist = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const wishlist = getWishlistByUserId(userId);
+    const wishlist = await getWishlistByUserId(userId);
 
-    return res.status(200).json(buildWishlistResponse(wishlist));
+    return res.status(200).json({
+      success: true,
+      data: wishlist,
+    });
   } catch (error) {
     return next(error);
   }
 };
 
-const createWishlistItem = async (req, res, next) => {
+const toggleWishlist = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const productId = toNumber(req.params.productId);
@@ -33,32 +31,15 @@ const createWishlistItem = async (req, res, next) => {
       });
     }
 
-    const wishlist = await addWishlistProduct({ userId, productId });
+    const result = await toggleWishlistItem(userId, productId);
 
-    return res.status(200).json(buildWishlistResponse(wishlist));
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
   } catch (error) {
     return next(error);
   }
 };
 
-const deleteWishlistItem = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const productId = toNumber(req.params.productId);
-
-    if (Number.isNaN(productId)) {
-      return res.status(400).json({
-        success: false,
-        error: "productId inválido",
-      });
-    }
-
-    const wishlist = removeWishlistProduct({ userId, productId });
-
-    return res.status(200).json(buildWishlistResponse(wishlist));
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export { getWishlist, createWishlistItem, deleteWishlistItem };
+export { getWishlist, toggleWishlist };

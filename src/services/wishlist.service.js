@@ -1,60 +1,28 @@
 import prisma from "../lib/prisma.js";
 
-const wishlistsByUser = new Map();
+export async function getWishlistByUserId(userId) {
+  return prisma.wishlistItem.findMany({
+    where: { userId },
+    orderBy: { productId: "asc" },
+  });
+}
 
-const getOrCreateWishlist = (userId) => {
-  if (!wishlistsByUser.has(userId)) {
-    wishlistsByUser.set(userId, []);
-  }
-  return wishlistsByUser.get(userId);
-};
-
-const getWishlistByUserId = (userId) => {
-  return getOrCreateWishlist(userId);
-};
-
-const addWishlistProduct = async ({ userId, productId }) => {
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
+export async function toggleWishlistItem(userId, productId) {
+  const existingItem = await prisma.wishlistItem.findFirst({
+    where: { userId, productId },
   });
 
-  if (!product) {
-    const error = new Error("Producto no encontrado");
-    error.status = 404;
-    throw error;
-  }
-
-  const wishlist = getOrCreateWishlist(userId);
-  const alreadyExists = wishlist.some((item) => item.id === product.id);
-
-  if (!alreadyExists) {
-    wishlist.push({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: Number(product.price),
-      imageUrl: product.imageUrl,
+  if (existingItem) {
+    await prisma.wishlistItem.delete({
+      where: { id: existingItem.id },
     });
+
+    return { removed: true };
   }
 
-  return wishlist;
-};
+  await prisma.wishlistItem.create({
+    data: { userId, productId },
+  });
 
-const removeWishlistProduct = ({ userId, productId }) => {
-  const wishlist = getOrCreateWishlist(userId);
-  const existsInWishlist = wishlist.some((item) => item.id === productId);
-
-  if (!existsInWishlist) {
-    const error = new Error("Producto no existe en favoritos");
-    error.status = 404;
-    throw error;
-  }
-
-  const nextWishlist = wishlist.filter((item) => item.id !== productId);
-
-  wishlistsByUser.set(userId, nextWishlist);
-
-  return nextWishlist;
-};
-
-export { getWishlistByUserId, addWishlistProduct, removeWishlistProduct };
+  return { removed: false };
+}
