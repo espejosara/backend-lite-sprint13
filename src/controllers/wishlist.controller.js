@@ -5,41 +5,40 @@ import {
 
 const toNumber = (value) => Number(value);
 
-const getWishlist = async (req, res, next) => {
+export async function getWishlist(req, res, next) {
   try {
     const userId = req.user.id;
     const wishlist = await getWishlistByUserId(userId);
 
-    return res.status(200).json({
-      success: true,
+    res.json({
+      ok: true,
       data: wishlist,
     });
   } catch (error) {
-    return next(error);
+    next(error);
   }
-};
+}
 
-const toggleWishlist = async (req, res, next) => {
+export async function toggleWishlist(req, res, next) {
   try {
     const userId = req.user.id;
     const productId = toNumber(req.params.productId);
 
     if (Number.isNaN(productId)) {
-      return res.status(400).json({
-        success: false,
+      res.status(400).json({
+        ok: false,
         error: "productId inválido",
       });
+      return;
     }
 
     const result = await toggleWishlistItem(userId, productId);
 
-    return res.status(200).json({
-      success: true,
+    res.json({
+      ok: true,
       data: result,
     });
   } catch (error) {
-    return next(error);
+    next(error);
   }
-};
-
-export { getWishlist, toggleWishlist };
+}
