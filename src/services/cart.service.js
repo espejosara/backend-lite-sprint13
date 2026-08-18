@@ -9,6 +9,12 @@ export async function getCartByUserId(userId) {
 }
 
 export async function addCartItem({ userId, productId, quantity = 1 }) {
+  if (quantity < 1) {
+    const error = new Error("La cantidad debe ser mayor a 0");
+    error.status = 400;
+    throw error;
+  }
+
   const product = await prisma.product.findUnique({
     where: { id: productId },
   });
@@ -16,6 +22,12 @@ export async function addCartItem({ userId, productId, quantity = 1 }) {
   if (!product) {
     const error = new Error("Producto no encontrado");
     error.status = 404;
+    throw error;
+  }
+
+  if (product.stock < quantity) {
+    const error = new Error(`Stock insuficiente. Disponible: ${product.stock}`);
+    error.status = 400;
     throw error;
   }
 

@@ -27,10 +27,18 @@ export async function createCartItem(req, res, next) {
     const productId = toNumber(req.body.productId);
     const quantity = req.body.quantity ? toNumber(req.body.quantity) : 1;
 
-    if (Number.isNaN(productId) || Number.isNaN(quantity) || quantity < 1) {
+    if (Number.isNaN(productId) || Number.isNaN(quantity)) {
       res.status(400).json({
         ok: false,
-        error: "productId y quantity válidos son obligatorios",
+        error: "productId y quantity deben ser números válidos",
+      });
+      return;
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      res.status(400).json({
+        ok: false,
+        error: "quantity debe ser un número entero mayor a 0",
       });
       return;
     }

@@ -1,12 +1,12 @@
-import express from "express";
 import cors from "cors";
+import express from "express";
 
-import productsRoutes from "./routes/products.routes.js";
-import authRoutes from "./routes/auth.routes.js";
-import reviewsRoutes from "./routes/reviews.routes.js";
-import cartRoutes from "./routes/cart.routes.js";
-import wishlistRoutes from "./routes/wishlist.routes.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
+import authRoutes from "./routes/auth.routes.js";
+import cartRoutes from "./routes/cart.routes.js";
+import productsRoutes from "./routes/products.routes.js";
+import reviewsRoutes from "./routes/reviews.routes.js";
+import wishlistRoutes from "./routes/wishlist.routes.js";
 
 const app = express();
 
