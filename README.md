@@ -154,7 +154,7 @@ El sistema maneja dos roles:
 
 1. Conectar el repositorio en Render.
 2. Configurar el build command como `npm install`.
-3. Configurar el start command como `node src/server.js`.
+3. Configurar el start command como `npm start` o `node src/index.js`.
 4. Añadir las variables de entorno del proyecto.
 
 ## Notas para la revisión
