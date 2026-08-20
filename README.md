@@ -1,14 +1,23 @@
 # backend-lite
 
-Backend en Express + Prisma para conectar con un frontend React + Vite. Incluye autenticación JWT, carrito y wishlist con persistencia en PostgreSQL.
+Backend final del proyecto desarrollado con Express, Prisma, PostgreSQL y JWT. La API está pensada para conectar con un frontend en React y cubrir autenticación, catálogo de productos, carrito, wishlist, reviews y rutas de administración.
+
+## Tecnologías
+
+- Node.js
+- Express
+- Prisma
+- PostgreSQL o Supabase
+- JWT para autenticación
+- CORS para integración con frontend local y desplegado
 
 ## Requisitos
 
-- Node.js 18+
-- PostgreSQL 12+ (o Supabase)
-- npm o yarn
+- Node.js 18 o superior
+- PostgreSQL 12 o Supabase
+- npm
 
-## Instalación rápida
+## Instalación
 
 ```bash
 npm install
@@ -16,247 +25,141 @@ npm install
 
 ## Configuración
 
-### 1. Variables de entorno (`.env`)
+### Variables de entorno
+
+Crear un archivo `.env` con esta estructura:
 
 ```bash
 PORT=3000
-JWT_EXPIRES_IN=24h
 DATABASE_URL=postgresql://user:password@host:5432/dbname?schema=public
 DIRECT_URL=postgresql://user:password@host:5432/dbname
+JWT_EXPIRES_IN=24h
+JWT_SECRET=tu_clave_secreta
+FRONTEND_URL=https://tu-frontend.com
+ALLOWED_ORIGINS=http://localhost:5173,https://tu-frontend.com
+ALLOW_ALL_ORIGINS=false
 ```
 
-**Con Supabase:** Copia las URLs directamente del dashboard de Supabase.
+### Base de datos
 
-### 2. Setup de base de datos
+Ejecutar el archivo `supabase/setup.sql` en Supabase o en tu gestor SQL local para crear las tablas y relaciones necesarias.
 
-Si usas Supabase, ejecuta el SQL en `supabase/setup.sql` en el editor SQL del dashboard.
-
-Si usas PostgreSQL local, ejecuta:
+Si usas PostgreSQL local:
 
 ```bash
 psql -U postgres -d tu_db -f supabase/setup.sql
 ```
 
+## CORS
+
+El servidor acepta por defecto el frontend local en `http://localhost:5173`.
+
+Para producción puedes usar una de estas opciones:
+
+- Definir `FRONTEND_URL` con la URL del frontend desplegado.
+- Definir `ALLOWED_ORIGINS` con varias URLs separadas por comas.
+- Usar `ALLOW_ALL_ORIGINS=true` solo de forma temporal durante pruebas.
+
+## Scripts
+
+```bash
+npm run dev
+npm start
+```
+
 ## Ejecución
 
-**Desarrollo:**
 ```bash
 npm run dev
 ```
 
-**Producción:**
-```bash
-npm start
-```
+Servidor disponible en `http://localhost:3000`.
 
-Servidor en `http://localhost:3000`
+## Estructura del proyecto
 
-## Estructura de carpetas
-
-```
+```text
 src/
-├── app.js              # Configuración de Express
-├── server.js           # Punto de entrada
-├── controllers/        # Handlers HTTP
-├── services/           # Lógica de negocio
-├── routes/             # Definición de rutas
-├── middlewares/        # Auth, error handling
-└── lib/
-    ├── prisma.js       # Cliente Prisma
-    └── jwt.js          # Utilidades JWT
+  app.js
+  server.js
+  controllers/
+  services/
+  routes/
+  middlewares/
+  lib/
+prisma/
+supabase/
 ```
 
-## Endpoints
+## API
 
-### 🔐 Auth (Público)
+### Autenticación
 
-| Método | Endpoint | Descripción |
-|--------|----------|------------|
-| POST | `/auth/register` | Registrar usuario nuevo |
-| POST | `/auth/login` | Login y obtener JWT |
+| Método | Ruta | Acceso |
+|---|---|---|
+| POST | `/auth/register` | Público |
+| POST | `/auth/login` | Público |
 
-**Request:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
+### Productos
 
-### 📦 Productos (Público)
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/products` | Público |
+| GET | `/products/:id` | Público |
+| POST | `/products` | Admin |
+| PUT | `/products/:id` | Admin |
+| DELETE | `/products/:id` | Admin |
 
-| Método | Endpoint | Descripción |
-|--------|----------|------------|
-| GET | `/products` | Listar todos |
-| GET | `/products/:id` | Obtener uno |
+### Reviews
 
-### ⭐ Reviews (Requiere JWT)
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/products/:id/reviews` | Público |
+| POST | `/products/:id/reviews` | Usuario autenticado |
 
-| Método | Endpoint | Descripción |
-|--------|----------|------------|
-| GET | `/products/:id/reviews` | Obtener reviews del producto |
-| POST | `/products/:id/reviews` | Crear review |
+### Carrito
 
-**Header requerido:**
-```
-Authorization: Bearer <jwt_token>
-```
-
-### 🛒 Carrito (Requiere JWT)
-
-**GET /cart**
-- Lista los items en el carrito del usuario autenticado
-- Response: Array de CartItem con datos del producto incluidos
-
-**POST /cart/items**
-- Agrega o incrementa cantidad de un producto
-- Body:
-```json
-{
-  "productId": 1,
-  "quantity": 2
-}
-```
-- Valida stock disponible
-
-**DELETE /cart/items/:itemId**
-- Elimina un item del carrito
-
-**POST /cart/checkout**
-- Finaliza compra y vacía el carrito
-- Response: Items comprados
-
-### 💚 Wishlist (Requiere JWT) - Toggle Pattern
-
-**GET /wishlist**
-- Lista productos agregados a wishlist
-
-**POST /wishlist/:productId**
-- **Toggle:** Agrega si no existe, elimina si ya existe
-- Response:
-```json
-{
-  "ok": true,
-  "data": {
-    "removed": false  // true si fue eliminado, false si fue agregado
-  }
-}
-```
-
-Este patrón es más eficiente que tener POST (agregar) y DELETE (eliminar) separados.
-
-## Validaciones
-
-### Cart
-- ✓ Cantidad debe ser entero > 0
-- ✓ Producto debe existir
-- ✓ Stock disponible debe ser >= cantidad solicitada
-- ✓ No duplicados: mismo usuario + producto incrementa cantidad
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/cart` | Usuario autenticado |
+| POST | `/cart/items` | Usuario autenticado |
+| DELETE | `/cart/items/:itemId` | Usuario autenticado |
+| POST | `/cart/checkout` | Usuario autenticado |
+| GET | `/cart/all` | Admin |
 
 ### Wishlist
-- ✓ Producto debe existir
-- ✓ No duplicados: mismo usuario + producto no puede existir dos veces
-- ✓ Toggle automático: POST agrega o elimina según estado
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/wishlist` | Usuario autenticado |
+| POST | `/wishlist/:productId` | Usuario autenticado |
 
 ## Autenticación
 
-El servidor usa JWT (JSON Web Tokens) con algoritmo HS256.
-
-**Flujo:**
-1. Usuario se registra o loguea
-2. Recibe JWT en response
-3. Incluye JWT en header `Authorization: Bearer <token>` para rutas protegidas
-
-**Token dura:** 24 horas (configurable en `.env` con `JWT_EXPIRES_IN`)
-
-## Deployment en Render
-
-### 1. Preparar repositorio
+Las rutas protegidas requieren el header:
 
 ```bash
-git add .
-git commit -m "refactor: cleanup código y actualizar documentación"
-git push
+Authorization: Bearer <token>
 ```
 
-### 2. Crear Web Service en Render
+El token se genera al iniciar sesión y contiene el id, email y role del usuario.
 
-1. Ve a [render.com](https://render.com)
-2. New → Web Service
-3. Conecta tu repo GitHub
-4. Configuración:
-   - **Build command:** `npm install`
-   - **Start command:** `node src/server.js`
+## Roles
 
-### 3. Environment Variables
+El sistema maneja dos roles:
 
-En Render, añade:
-```
-DATABASE_URL=postgresql://...
-DIRECT_URL=postgresql://...
-JWT_EXPIRES_IN=24h
-JWT_SECRET=<algo-seguro>
-```
+- `user` para uso normal de la aplicación.
+- `admin` para administrar productos y ver todos los carritos.
 
-### 4. Deploy
+## Despliegue en Render
 
-Render hace deploy automático con cada push a main.
+1. Conectar el repositorio en Render.
+2. Configurar el build command como `npm install`.
+3. Configurar el start command como `node src/server.js`.
+4. Añadir las variables de entorno del proyecto.
 
-## Notas
+## Notas para la revisión
 
-- **BD:** PostgreSQL elegido por relaciones estructuradas (CartItem → Product → User)
-- **Reviews:** Aunque podrían ir en NoSQL, estructura fija las hace perfectas para SQL
-- **Prisma:** ORM moderno con soporte excelente para PostgreSQL
-- **Persistencia:** Cart y Wishlist usan BD, no memoria local
-
-
-#### Contrato estable de Wishlist
-
-- Path base único: `/wishlist`
-- Quitar favorito: `DELETE /wishlist/:productId`
-- Mismo JSON de éxito en `GET/POST/DELETE`:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "El Samurai Futurista",
-      "description": "Guerrero con armadura...",
-      "price": 49.99,
-      "imageUrl": "https://..."
-    }
-  ]
-}
-```
-
-- Códigos HTTP:
-- `200` éxito (GET/POST/DELETE)
-- `401` no autenticado/token inválido
-- `404` recurso no encontrado (ruta, producto inexistente o producto no presente en favoritos)
-
-## Ejemplo de uso
-
-### Login
-
-```bash
-curl -X POST http://localhost:3000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@mail.com","password":"123456"}'
-```
-
-### Crear review
-
-```bash
-curl -X POST http://localhost:3000/products/3/reviews \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer TU_TOKEN" \
-  -d '{"rating":5,"comment":"Muy buena figura"}'
-```
-
-## Notas
-
-- Las rutas de `cart` y `wishlist` están protegidas con JWT.
-- `POST /products/:id/reviews` también requiere autenticación.
-- Si usas Supabase con inserts manuales, puede que tengas que reajustar secuencias de IDs.
+- El backend usa PostgreSQL porque el proyecto necesita relaciones entre usuarios, productos, carrito y wishlist.
+- Prisma facilita la conexión con la base de datos y mantiene el código del proyecto más claro.
+- CORS está configurado para desarrollo local y para el frontend desplegado.
+- Las rutas administrativas están protegidas con `requireRole("admin")`.
