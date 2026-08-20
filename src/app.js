@@ -10,11 +10,30 @@ import wishlistRoutes from "./routes/wishlist.routes.js";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-  })
-);
+const defaultOrigins = ["http://localhost:5173"];
+
+const allowedOrigins = [
+  ...defaultOrigins,
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  ...(process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
+    : []),
+];
+
+const corsOptions = process.env.ALLOW_ALL_ORIGINS === "true"
+  ? {}
+  : {
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error("No permitido por CORS"));
+      },
+    };
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
