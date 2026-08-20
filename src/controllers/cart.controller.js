@@ -1,6 +1,7 @@
 import {
   addCartItem,
   checkoutCart,
+  getAllCarts,
   getCartByUserId,
   removeCartItem,
 } from "../services/cart.service.js";
@@ -15,6 +16,19 @@ export async function getCart(req, res, next) {
     res.json({
       ok: true,
       data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAllCartsAdmin(req, res, next) {
+  try {
+    const carts = await getAllCarts();
+
+    res.json({
+      ok: true,
+      data: carts,
     });
   } catch (error) {
     next(error);

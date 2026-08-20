@@ -21,4 +21,40 @@ const findProductById = async (id) => {
   return product ? normalizeProduct(product) : null;
 };
 
-export { getAllProducts, findProductById };
+const createProduct = async ({ name, category, description, price, stock, imageUrl }) => {
+  const product = await prisma.product.create({
+    data: {
+      name,
+      category,
+      description,
+      price,
+      stock,
+      imageUrl,
+    },
+  });
+
+  return normalizeProduct(product);
+};
+
+const updateProductById = async (id, data) => {
+  const product = await prisma.product.update({
+    where: { id },
+    data,
+  });
+
+  return normalizeProduct(product);
+};
+
+const deleteProductById = async (id) => {
+  await prisma.product.delete({
+    where: { id },
+  });
+};
+
+export {
+  createProduct,
+  deleteProductById,
+  findProductById,
+  getAllProducts,
+  updateProductById,
+};

@@ -8,6 +8,23 @@ export async function getCartByUserId(userId) {
   });
 }
 
+export async function getAllCarts() {
+  return await prisma.cartItem.findMany({
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+      product: true,
+    },
+    orderBy: [{ userId: "asc" }, { productId: "asc" }],
+  });
+}
+
 export async function addCartItem({ userId, productId, quantity = 1 }) {
   if (quantity < 1) {
     const error = new Error("La cantidad debe ser mayor a 0");

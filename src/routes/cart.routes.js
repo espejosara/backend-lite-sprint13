@@ -3,14 +3,19 @@ import {
   checkout,
   createCartItem,
   deleteCartItem,
+  getAllCartsAdmin,
   getCart,
 } from "../controllers/cart.controller.js";
-import { authenticateToken } from "../middlewares/auth.middleware.js";
+import {
+  authenticateToken,
+  requireRole,
+} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
 router.use(authenticateToken);
 
+router.get("/all", requireRole("admin"), getAllCartsAdmin);
 router.get("/", getCart);
 router.post("/items", createCartItem);
 router.delete("/items/:itemId", deleteCartItem);
