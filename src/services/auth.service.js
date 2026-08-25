@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 import { signToken } from "../lib/jwt.js";
+import { formatOrderWithProducts } from "./orders.service.js";
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
@@ -114,19 +115,24 @@ const getProfileByUserId = async (userId) => {
         prisma.order.findFirst({
           where: { userId },
           orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            total: true,
-            createdAt: true,
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
           },
         }),
       ])
     : [0, null];
 
+  const formattedLastOrder = lastOrder ? formatOrderWithProducts(lastOrder) : null;
+
   return {
     user: {
       id: user.id,
       name: user.name,
+      email: user.email,
       emailAddress: user.email,
       role: user.role,
       contact: {
@@ -141,7 +147,7 @@ const getProfileByUserId = async (userId) => {
     },
     checkout: {
       ordersCount,
-      lastOrder,
+      lastOrder: formattedLastOrder,
     },
   };
 };
