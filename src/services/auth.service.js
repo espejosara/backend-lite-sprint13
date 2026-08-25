@@ -14,9 +14,8 @@ const sanitizeUser = (user) => ({
   id: user.id,
   name: user.name,
   email: user.email,
+  emailAddress: user.email,
   role: user.role,
-  phone: "No indicado",
-  address: "No indicada",
   memberSince: user.createdAt ?? null,
 });
 
@@ -128,11 +127,11 @@ const getProfileByUserId = async (userId) => {
     user: {
       id: user.id,
       name: user.name,
+      emailAddress: user.email,
       role: user.role,
       contact: {
         email: user.email,
-        phone: "No indicado",
-        address: "No indicada",
+        emailAddress: user.email,
       },
       memberSince: user.createdAt,
     },
