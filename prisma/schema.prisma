@@ -20,6 +20,7 @@ model User {
   reviews       Review[]
   cartItems     CartItem[]
   wishlistItems WishlistItem[]
+  orders        Order[]
 }
 
 model Product {
@@ -36,6 +37,7 @@ model Product {
   reviews       Review[]
   cartItems     CartItem[]
   wishlistItems WishlistItem[]
+  orderItems    OrderItem[]
 }
 
 model Review {
@@ -74,4 +76,25 @@ model WishlistItem {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+}
+
+model Order {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  total     Decimal
+  createdAt DateTime   @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  unitPrice Decimal
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
 }

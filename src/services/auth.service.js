@@ -15,6 +15,9 @@ const sanitizeUser = (user) => ({
   name: user.name,
   email: user.email,
   role: user.role,
+  phone: "No indicado",
+  address: "No indicada",
+  memberSince: user.createdAt ?? null,
 });
 
 const buildAuthResponse = (user) => ({
@@ -81,4 +84,67 @@ const loginUser = async ({ email, password }) => {
   return buildAuthResponse(user);
 };
 
-export { registerUser, loginUser };
+const getProfileByUserId = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) {
+    throw createServiceError(404, "Usuario no encontrado");
+  }
+
+  const wishlistItems = await prisma.wishlistItem.findMany({
+    where: { userId },
+    include: { product: true },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+  });
+
+  const hasOrderModel = typeof prisma.order?.count === "function";
+
+  const [ordersCount, lastOrder] = hasOrderModel
+    ? await Promise.all([
+        prisma.order.count({ where: { userId } }),
+        prisma.order.findFirst({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            total: true,
+            createdAt: true,
+          },
+        }),
+      ])
+    : [0, null];
+
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      role: user.role,
+      contact: {
+        email: user.email,
+        phone: "No indicado",
+        address: "No indicada",
+      },
+      memberSince: user.createdAt,
+    },
+    wishlist: {
+      count: wishlistItems.length,
+      items: wishlistItems,
+    },
+    checkout: {
+      ordersCount,
+      lastOrder,
+    },
+  };
+};
+
+export { registerUser, loginUser, getProfileByUserId };

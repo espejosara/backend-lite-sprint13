@@ -1,4 +1,8 @@
-import { loginUser, registerUser } from "../services/auth.service.js";
+import {
+  getProfileByUserId,
+  loginUser,
+  registerUser,
+} from "../services/auth.service.js";
 
 const register = async (req, res, next) => {
   try {
@@ -26,4 +30,17 @@ const login = async (req, res, next) => {
   }
 };
 
-export { register, login };
+const me = async (req, res, next) => {
+  try {
+    const payload = await getProfileByUserId(req.user.id);
+
+    return res.json({
+      success: true,
+      data: payload,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { register, login, me };

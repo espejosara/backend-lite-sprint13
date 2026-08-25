@@ -98,6 +98,7 @@ supabase/
 |---|---|---|
 | POST | `/auth/register` | Público |
 | POST | `/auth/login` | Público |
+| GET | `/auth/me` | Usuario autenticado |
 
 ### Productos
 
@@ -132,6 +133,12 @@ supabase/
 |---|---|---|
 | GET | `/wishlist` | Usuario autenticado |
 | POST | `/wishlist/:productId` | Usuario autenticado |
+
+### Pedidos
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/orders` | Usuario autenticado |
 
 ## Autenticación
 
