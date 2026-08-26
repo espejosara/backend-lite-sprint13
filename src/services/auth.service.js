@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import prisma from "../lib/prisma.js";
 import { signToken } from "../lib/jwt.js";
 import { formatOrderWithProducts } from "./orders.service.js";
@@ -54,11 +55,13 @@ const registerUser = async ({ name, email, password }) => {
     throw createServiceError(409, "El email ya está registrado");
   }
 
+  const hashedPassword = await bcrypt.hash(cleanPassword, 10);
+
   const newUser = await prisma.user.create({
     data: {
       name: cleanName,
       email: cleanEmail,
-      password: cleanPassword,
+      password: hashedPassword,
     },
   });
 
@@ -77,7 +80,11 @@ const loginUser = async ({ email, password }) => {
     where: { email: cleanEmail },
   });
 
-  if (!user || user.password !== cleanPassword) {
+  const passwordMatches = user
+    ? await bcrypt.compare(cleanPassword, user.password)
+    : false;
+
+  if (!user || !passwordMatches) {
     throw createServiceError(401, "Credenciales inválidas");
   }
 
