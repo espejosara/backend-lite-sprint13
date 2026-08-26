@@ -82,6 +82,33 @@ export async function removeCartItem({ userId, itemId }) {
   });
 }
 
+export async function updateCartItemQuantity({ userId, itemId, quantity }) {
+  const item = await prisma.cartItem.findUnique({
+    where: { id: itemId },
+    include: { product: true },
+  });
+
+  if (!item || item.userId !== userId) {
+    const error = new Error("Item no encontrado en carrito");
+    error.status = 404;
+    throw error;
+  }
+
+  if (quantity > item.product.stock) {
+    const error = new Error(
+      `Stock insuficiente. Disponible: ${item.product.stock}`,
+    );
+    error.status = 400;
+    throw error;
+  }
+
+  return await prisma.cartItem.update({
+    where: { id: itemId },
+    data: { quantity },
+    include: { product: true },
+  });
+}
+
 export async function checkoutCart(userId) {
   if (typeof prisma.order?.create !== "function") {
     const error = new Error(

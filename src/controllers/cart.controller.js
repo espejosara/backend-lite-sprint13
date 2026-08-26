@@ -4,6 +4,7 @@ import {
   getAllCarts,
   getCartByUserId,
   removeCartItem,
+  updateCartItemQuantity,
 } from "../services/cart.service.js";
 
 const toNumber = (value) => Number(value);
@@ -62,6 +63,39 @@ export async function createCartItem(req, res, next) {
     res.status(201).json({
       ok: true,
       data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateCartItem(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const itemId = toNumber(req.params.itemId);
+    const quantity = toNumber(req.body?.quantity);
+
+    if (!Number.isInteger(itemId) || itemId < 1) {
+      res.status(400).json({
+        ok: false,
+        error: "itemId inválido",
+      });
+      return;
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      res.status(400).json({
+        ok: false,
+        error: "quantity debe ser un número entero mayor a 0",
+      });
+      return;
+    }
+
+    const item = await updateCartItemQuantity({ userId, itemId, quantity });
+
+    res.json({
+      ok: true,
+      data: item,
     });
   } catch (error) {
     next(error);

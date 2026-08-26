@@ -5,6 +5,7 @@ import {
   deleteCartItem,
   getAllCartsAdmin,
   getCart,
+  updateCartItem,
 } from "../controllers/cart.controller.js";
 import {
   authenticateToken,
@@ -18,6 +19,7 @@ router.use(authenticateToken);
 router.get("/all", requireRole("admin"), getAllCartsAdmin);
 router.get("/", getCart);
 router.post("/items", createCartItem);
+router.patch("/items/:itemId", updateCartItem);
 router.delete("/items/:itemId", deleteCartItem);
 router.post("/checkout", checkout);
 
