@@ -226,4 +226,5 @@ export {
   getProductById,
   getProducts,
   updateProductAdmin,
+  validateProductPayload,
 };

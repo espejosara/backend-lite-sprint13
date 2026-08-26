@@ -30,7 +30,7 @@ const buildAuthResponse = (user) => ({
   }),
 });
 
-const registerUser = async ({ name, email, password }) => {
+const registerUser = async ({ name, email, password }, db = prisma) => {
   const cleanName = normalizeText(name);
   const cleanEmail = normalizeText(email).toLowerCase();
   const cleanPassword = typeof password === "string" ? password : "";
@@ -47,7 +47,7 @@ const registerUser = async ({ name, email, password }) => {
     throw createServiceError(400, "La contraseña debe tener al menos 6 caracteres");
   }
 
-  const existingUser = await prisma.user.findUnique({
+  const existingUser = await db.user.findUnique({
     where: { email: cleanEmail },
   });
 
@@ -57,7 +57,7 @@ const registerUser = async ({ name, email, password }) => {
 
   const hashedPassword = await bcrypt.hash(cleanPassword, 10);
 
-  const newUser = await prisma.user.create({
+  const newUser = await db.user.create({
     data: {
       name: cleanName,
       email: cleanEmail,
@@ -68,7 +68,7 @@ const registerUser = async ({ name, email, password }) => {
   return buildAuthResponse(newUser);
 };
 
-const loginUser = async ({ email, password }) => {
+const loginUser = async ({ email, password }, db = prisma) => {
   const cleanEmail = normalizeText(email).toLowerCase();
   const cleanPassword = typeof password === "string" ? password : "";
 
@@ -76,7 +76,7 @@ const loginUser = async ({ email, password }) => {
     throw createServiceError(400, "Email y contraseña son obligatorios");
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: { email: cleanEmail },
   });
 

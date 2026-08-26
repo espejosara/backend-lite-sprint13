@@ -66,8 +66,8 @@ export async function addCartItem({ userId, productId, quantity = 1 }) {
   });
 }
 
-export async function removeCartItem({ userId, itemId }) {
-  const item = await prisma.cartItem.findUnique({
+export async function removeCartItem({ userId, itemId }, db = prisma) {
+  const item = await db.cartItem.findUnique({
     where: { id: itemId },
   });
 
@@ -77,13 +77,19 @@ export async function removeCartItem({ userId, itemId }) {
     throw error;
   }
 
-  return await prisma.cartItem.delete({
+  return await db.cartItem.delete({
     where: { id: itemId },
   });
 }
 
-export async function updateCartItemQuantity({ userId, itemId, quantity }) {
-  const item = await prisma.cartItem.findUnique({
+export async function updateCartItemQuantity({ userId, itemId, quantity }, db = prisma) {
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    const error = new Error("La cantidad debe ser un número entero mayor a 0");
+    error.status = 400;
+    throw error;
+  }
+
+  const item = await db.cartItem.findUnique({
     where: { id: itemId },
     include: { product: true },
   });
@@ -102,7 +108,7 @@ export async function updateCartItemQuantity({ userId, itemId, quantity }) {
     throw error;
   }
 
-  return await prisma.cartItem.update({
+  return await db.cartItem.update({
     where: { id: itemId },
     data: { quantity },
     include: { product: true },

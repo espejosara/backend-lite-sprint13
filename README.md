@@ -66,6 +66,34 @@ Para producción puedes usar una de estas opciones:
 ```bash
 npm run dev
 npm start
+npm test
+npm run test:watch
+```
+
+## Pruebas automatizadas
+
+El backend utiliza el runner nativo `node:test`. Las pruebas unitarias inyectan una implementación simulada de Prisma, por lo que no escriben usuarios, productos ni carritos en la base de datos real.
+
+La suite cubre:
+
+- Registro con hash bcrypt y respuestas sin contraseña.
+- Login correcto y error genérico para credenciales inválidas.
+- Autenticación JWT y autorización por rol `admin`.
+- Listado, creación, edición y eliminación de productos.
+- Validaciones de los datos de producto.
+- Actualización de cantidades, control de stock y propiedad del carrito.
+- Eliminación completa de líneas del carrito.
+
+Ejecutar una sola vez:
+
+```bash
+npm test
+```
+
+Ejecutar automáticamente al modificar archivos:
+
+```bash
+npm run test:watch
 ```
 
 ## Ejecución

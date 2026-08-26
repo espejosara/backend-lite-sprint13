@@ -5,24 +5,24 @@ const normalizeProduct = (product) => ({
   price: Number(product.price),
 });
 
-const getAllProducts = async () => {
-  const products = await prisma.product.findMany({
+const getAllProducts = async (db = prisma) => {
+  const products = await db.product.findMany({
     orderBy: { id: "asc" },
   });
 
   return products.map(normalizeProduct);
 };
 
-const findProductById = async (id) => {
-  const product = await prisma.product.findUnique({
+const findProductById = async (id, db = prisma) => {
+  const product = await db.product.findUnique({
     where: { id },
   });
 
   return product ? normalizeProduct(product) : null;
 };
 
-const createProduct = async ({ name, category, description, price, stock, imageUrl }) => {
-  const product = await prisma.product.create({
+const createProduct = async ({ name, category, description, price, stock, imageUrl }, db = prisma) => {
+  const product = await db.product.create({
     data: {
       name,
       category,
@@ -36,8 +36,8 @@ const createProduct = async ({ name, category, description, price, stock, imageU
   return normalizeProduct(product);
 };
 
-const updateProductById = async (id, data) => {
-  const product = await prisma.product.update({
+const updateProductById = async (id, data, db = prisma) => {
+  const product = await db.product.update({
     where: { id },
     data,
   });
@@ -45,8 +45,8 @@ const updateProductById = async (id, data) => {
   return normalizeProduct(product);
 };
 
-const deleteProductById = async (id) => {
-  await prisma.product.delete({
+const deleteProductById = async (id, db = prisma) => {
+  await db.product.delete({
     where: { id },
   });
 };
