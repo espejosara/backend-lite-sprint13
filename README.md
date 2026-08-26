@@ -9,6 +9,7 @@ Backend final del proyecto desarrollado con Express, Prisma, PostgreSQL y JWT. L
 - Prisma
 - PostgreSQL o Supabase
 - JWT para autenticación
+- bcryptjs para proteger contraseñas
 - CORS para integración con frontend local y desplegado
 
 ## Requisitos
@@ -123,6 +124,7 @@ supabase/
 |---|---|---|
 | GET | `/cart` | Usuario autenticado |
 | POST | `/cart/items` | Usuario autenticado |
+| PATCH | `/cart/items/:itemId` | Usuario autenticado |
 | DELETE | `/cart/items/:itemId` | Usuario autenticado |
 | POST | `/cart/checkout` | Usuario autenticado |
 | GET | `/cart/all` | Admin |
@@ -149,6 +151,44 @@ Authorization: Bearer <token>
 ```
 
 El token se genera al iniciar sesión y contiene el id, email y role del usuario.
+
+### Seguridad de contraseñas
+
+- Las contraseñas nuevas se guardan mediante `bcryptjs` con un factor de coste de 10.
+- El login utiliza `bcrypt.compare()`; nunca compara contraseñas en texto plano.
+- Tanto un usuario inexistente como una contraseña incorrecta devuelven el mismo error genérico: `Credenciales inválidas`.
+- La contraseña y su hash no se incluyen en las respuestas de la API.
+- Las cuentas que existían antes de incorporar bcrypt fueron migradas en la base de datos actual. Si se importa otra base de datos antigua, sus contraseñas también deberán migrarse o restablecerse.
+
+## Auditoría de dependencias
+
+En la versión actual del lockfile, `npm audit` informa de cuatro avisos de severidad alta en esta cadena transitiva:
+
+```text
+prisma 6.16.2
+└── @prisma/config 6.16.2
+    ├── deepmerge-ts 7.1.5
+    └── effect 3.16.12
+```
+
+Estos avisos proceden de las herramientas internas de configuración de Prisma y no de `bcryptjs` ni de la lógica de autenticación de la API. Prisma se mantiene en `devDependencies`.
+
+No se debe ejecutar automáticamente:
+
+```bash
+npm audit fix --force
+```
+
+Actualmente ese comando propone un cambio incompatible de Prisma. Tampoco se debe actualizar el proyecto a una versión `release candidate` de Prisma únicamente para ocultar el aviso.
+
+Para revisar el estado de las dependencias:
+
+```bash
+npm ls prisma @prisma/config deepmerge-ts effect
+npm audit --omit=dev
+```
+
+La actualización debe realizarse cuando Prisma publique una versión estable compatible que incorpore `effect >= 3.20.0` y `deepmerge-ts >= 8.0.0`. Después de actualizar Prisma y `@prisma/client` a la misma versión, se deberá ejecutar `npx prisma generate`, validar el esquema y probar la API completa.
 
 ## Roles
 
