@@ -5,12 +5,16 @@ import {
   getAllProducts,
   updateProductById,
 } from "../services/products.service.js";
+import { uploadProductImage } from "../services/cloudinary.service.js";
 
 const parseId = (value) => Number(value);
 
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
 
-const validateProductPayload = (payload, { partial = false } = {}) => {
+const validateProductPayload = (
+  payload,
+  { partial = false, imageRequired = true } = {},
+) => {
   const name = normalizeText(payload.name);
   const category = normalizeText(payload.category);
   const description = normalizeText(payload.description);
@@ -36,7 +40,7 @@ const validateProductPayload = (payload, { partial = false } = {}) => {
     }
   }
 
-  if (!partial || payload.imageUrl !== undefined) {
+  if ((!partial && imageRequired) || payload.imageUrl !== undefined) {
     if (!imageUrl) {
       return { error: "La imagen del producto es obligatoria" };
     }
@@ -65,7 +69,7 @@ const validateProductPayload = (payload, { partial = false } = {}) => {
   if (!partial || payload.description !== undefined) {
     data.description = description;
   }
-  if (!partial || payload.imageUrl !== undefined) {
+  if (payload.imageUrl !== undefined) {
     data.imageUrl = imageUrl;
   }
   if (!partial || payload.price !== undefined) {
@@ -122,7 +126,9 @@ const getProductById = async (req, res, next) => {
 
 const createProductAdmin = async (req, res, next) => {
   try {
-    const { data, error } = validateProductPayload(req.body);
+    const { data, error } = validateProductPayload(req.body, {
+      imageRequired: false,
+    });
 
     if (error) {
       return res.status(400).json({
@@ -130,6 +136,16 @@ const createProductAdmin = async (req, res, next) => {
         error,
       });
     }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "La imagen del producto es obligatoria",
+      });
+    }
+
+    const uploadResult = await uploadProductImage(req.file.buffer);
+    data.imageUrl = uploadResult.secure_url;
 
     const product = await createProduct(data);
 
@@ -162,7 +178,10 @@ const updateProductAdmin = async (req, res, next) => {
       });
     }
 
-    const { data, error } = validateProductPayload(req.body, { partial: true });
+    const payload = { ...req.body };
+    delete payload.imageUrl;
+
+    const { data, error } = validateProductPayload(payload, { partial: true });
 
     if (error) {
       return res.status(400).json({
@@ -171,11 +190,16 @@ const updateProductAdmin = async (req, res, next) => {
       });
     }
 
-    if (Object.keys(data).length === 0) {
+    if (Object.keys(data).length === 0 && !req.file) {
       return res.status(400).json({
         success: false,
         error: "Debes enviar al menos un campo para actualizar",
       });
+    }
+
+    if (req.file) {
+      const uploadResult = await uploadProductImage(req.file.buffer);
+      data.imageUrl = uploadResult.secure_url;
     }
 
     const product = await updateProductById(id, data);

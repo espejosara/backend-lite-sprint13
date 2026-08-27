@@ -39,7 +39,13 @@ JWT_SECRET=tu_clave_secreta
 FRONTEND_URL=https://tu-frontend.com
 ALLOWED_ORIGINS=http://localhost:5173,https://tu-frontend.com
 ALLOW_ALL_ORIGINS=false
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
 ```
+
+Las credenciales de Cloudinary se obtienen desde el panel de Cloudinary. No deben
+subirse al repositorio ni exponerse en variables `VITE_*` del frontend.
 
 ### Base de datos
 
@@ -147,6 +153,12 @@ supabase/
 | POST | `/products` | Admin |
 | PUT | `/products/:id` | Admin |
 | DELETE | `/products/:id` | Admin |
+
+Las operaciones `POST /products` y `PUT /products/:id` aceptan
+`multipart/form-data`. El archivo debe enviarse en el campo `image`; se admiten
+JPG, PNG, WebP, GIF y AVIF hasta 5 MB. La imagen es obligatoria al crear y
+opcional al editar. El backend la sube a la carpeta `products` de Cloudinary y
+guarda únicamente su `secure_url` en `imageUrl`.
 
 ### Reviews
 
