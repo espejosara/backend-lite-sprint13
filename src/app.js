@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 
+import { corsOptions } from "./config/cors.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
@@ -10,29 +11,6 @@ import reviewsRoutes from "./routes/reviews.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 
 const app = express();
-
-const defaultOrigins = ["http://localhost:5173"];
-
-const allowedOrigins = [
-  ...defaultOrigins,
-  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
-  ...(process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
-    : []),
-];
-
-const corsOptions = process.env.ALLOW_ALL_ORIGINS === "true"
-  ? {}
-  : {
-      origin(origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-          return;
-        }
-
-        callback(new Error("No permitido por CORS"));
-      },
-    };
 
 app.use(cors(corsOptions));
 

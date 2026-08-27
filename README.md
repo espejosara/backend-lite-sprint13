@@ -55,6 +55,15 @@ psql -U postgres -d tu_db -f supabase/setup.sql
 
 El servidor acepta por defecto el frontend local en `http://localhost:5173`.
 
+También se aceptan:
+
+- Orígenes locales con hostname `localhost`, `127.0.0.1` o `::1`.
+- Sitios y deploy previews servidos por HTTPS cuyo hostname termina exactamente en `.netlify.app`.
+- Orígenes exactos definidos mediante `FRONTEND_URL` o `ALLOWED_ORIGINS`.
+- Peticiones sin cabecera `Origin`, como las realizadas por Postman o por herramientas de test.
+
+CORS permite credenciales, los métodos `GET`, `POST`, `PUT`, `PATCH`, `DELETE` y `OPTIONS`, y las cabeceras `Content-Type` y `Authorization`.
+
 Para producción puedes usar una de estas opciones:
 
 - Definir `FRONTEND_URL` con la URL del frontend desplegado.
