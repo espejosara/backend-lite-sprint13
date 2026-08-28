@@ -1,4 +1,5 @@
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import express from "express";
 
 import { corsOptions } from "./config/cors.js";
@@ -15,6 +16,7 @@ const app = express();
 app.use(cors(corsOptions));
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.json({

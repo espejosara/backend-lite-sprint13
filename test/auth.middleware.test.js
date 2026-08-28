@@ -18,8 +18,8 @@ function createResponse() {
   };
 }
 
-test("authenticateToken rechaza peticiones sin token", () => {
-  const req = { headers: {} };
+test("authenticateToken rechaza peticiones sin cookie", () => {
+  const req = { cookies: {} };
   const res = createResponse();
   let nextCalled = false;
 
@@ -28,12 +28,12 @@ test("authenticateToken rechaza peticiones sin token", () => {
   });
 
   assert.equal(res.statusCode, 401);
-  assert.equal(res.body.error, "Token no proporcionado");
+  assert.equal(res.body.error, "Sesión no iniciada");
   assert.equal(nextCalled, false);
 });
 
 test("authenticateToken rechaza tokens inválidos", () => {
-  const req = { headers: { authorization: "Bearer token-invalido" } };
+  const req = { cookies: { authToken: "token-invalido" } };
   const res = createResponse();
 
   authenticateToken(req, res, () => assert.fail("next no debe ejecutarse"));
@@ -42,9 +42,9 @@ test("authenticateToken rechaza tokens inválidos", () => {
   assert.equal(res.body.error, "Token inválido o expirado");
 });
 
-test("authenticateToken añade el usuario de un token válido", () => {
+test("authenticateToken añade el usuario de una cookie válida", () => {
   const token = signToken({ id: 7, email: "admin@example.com", role: "admin" });
-  const req = { headers: { authorization: `Bearer ${token}` } };
+  const req = { cookies: { authToken: token } };
   const res = createResponse();
   let nextCalled = false;
 

@@ -26,17 +26,12 @@ function isLocalOrigin(url) {
   return isHttp && LOCAL_HOSTNAMES.has(url.hostname);
 }
 
-function isNetlifyOrigin(url) {
-  return url.protocol === "https:" && url.hostname.endsWith(".netlify.app");
-}
-
 export function createCorsOptions(environment = process.env) {
   const configuredOrigins = getConfiguredOrigins(environment);
-  const allowAllOrigins = environment.ALLOW_ALL_ORIGINS === "true";
 
   return {
     origin(origin, callback) {
-      if (!origin || allowAllOrigins) {
+      if (!origin) {
         callback(null, true);
         return;
       }
@@ -51,8 +46,7 @@ export function createCorsOptions(environment = process.env) {
       }
 
       const isAllowed = configuredOrigins.has(parsedOrigin.origin)
-        || isLocalOrigin(parsedOrigin)
-        || isNetlifyOrigin(parsedOrigin);
+        || isLocalOrigin(parsedOrigin);
 
       if (isAllowed) {
         callback(null, true);

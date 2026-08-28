@@ -142,6 +142,7 @@ supabase/
 |---|---|---|
 | POST | `/auth/register` | Público |
 | POST | `/auth/login` | Público |
+| POST | `/auth/logout` | Público |
 | GET | `/auth/me` | Usuario autenticado |
 
 ### Productos
@@ -193,13 +194,18 @@ guarda únicamente su `secure_url` en `imageUrl`.
 
 ## Autenticación
 
-Las rutas protegidas requieren el header:
+Al registrarse o iniciar sesión, la API guarda el JWT en una cookie `HttpOnly`.
+El navegador debe enviar las peticiones con credenciales (`withCredentials: true`
+en Axios). Las rutas protegidas leen el token desde esa cookie y el frontend no
+necesita ni puede acceder al JWT.
 
-```bash
-Authorization: Bearer <token>
-```
+En desarrollo la cookie usa `SameSite=Lax`; en producción usa
+`SameSite=None; Secure` para admitir un frontend y una API alojados en dominios
+HTTPS diferentes. `POST /auth/logout` elimina la cookie.
 
-El token se genera al iniciar sesión y contiene el id, email y role del usuario.
+Como las cookies viajan con las peticiones, CORS solo admite localhost y los
+orígenes exactos configurados en `FRONTEND_URL` o `ALLOWED_ORIGINS`. Los deploy
+previews que deban acceder a la API se añaden explícitamente a esa lista.
 
 ### Seguridad de contraseñas
 
@@ -207,6 +213,7 @@ El token se genera al iniciar sesión y contiene el id, email y role del usuario
 - El login utiliza `bcrypt.compare()`; nunca compara contraseñas en texto plano.
 - Tanto un usuario inexistente como una contraseña incorrecta devuelven el mismo error genérico: `Credenciales inválidas`.
 - La contraseña y su hash no se incluyen en las respuestas de la API.
+- El JWT no se incluye en el cuerpo de las respuestas de registro o login.
 - Las cuentas que existían antes de incorporar bcrypt fueron migradas en la base de datos actual. Si se importa otra base de datos antigua, sus contraseñas también deberán migrarse o restablecerse.
 
 ## Auditoría de dependencias

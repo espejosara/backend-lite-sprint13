@@ -1,16 +1,15 @@
 import { verifyToken } from "../lib/jwt.js";
+import { getAuthCookieName } from "../config/auth-cookie.js";
 
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies?.[getAuthCookieName()];
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({
       success: false,
-      error: "Token no proporcionado",
+      error: "Sesión no iniciada",
     });
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     req.user = verifyToken(token);

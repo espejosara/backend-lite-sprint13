@@ -34,26 +34,11 @@ test("CORS permite localhost y loopback con distintos puertos", async () => {
   }
 });
 
-test("CORS permite sitios y previews de Netlify por HTTPS", async () => {
+test("CORS rechaza sitios de Netlify que no estén configurados", async () => {
   const options = createCorsOptions({});
   const origins = [
     "https://mi-tienda.netlify.app",
     "https://deploy-preview-42--mi-tienda.netlify.app",
-  ];
-
-  for (const origin of origins) {
-    const result = await evaluateOrigin(options, origin);
-    assert.equal(result.error, null);
-    assert.equal(result.allowed, true);
-  }
-});
-
-test("CORS no acepta dominios que imitan el sufijo de Netlify", async () => {
-  const options = createCorsOptions({});
-  const origins = [
-    "https://netlify.app.ejemplo.com",
-    "https://falso-netlify.app",
-    "http://mi-tienda.netlify.app",
   ];
 
   for (const origin of origins) {
@@ -65,19 +50,27 @@ test("CORS no acepta dominios que imitan el sufijo de Netlify", async () => {
 
 test("CORS permite orígenes exactos configurados por entorno", async () => {
   const options = createCorsOptions({
-    FRONTEND_URL: "https://tienda.example.com/",
-    ALLOWED_ORIGINS: "https://admin.example.com, https://preview.example.com",
+    FRONTEND_URL: "https://mi-tienda.netlify.app/",
+    ALLOWED_ORIGINS: "https://admin.example.com, https://deploy-preview-42--mi-tienda.netlify.app",
   });
 
   for (const origin of [
-    "https://tienda.example.com",
+    "https://mi-tienda.netlify.app",
     "https://admin.example.com",
-    "https://preview.example.com",
+    "https://deploy-preview-42--mi-tienda.netlify.app",
   ]) {
     const result = await evaluateOrigin(options, origin);
     assert.equal(result.error, null);
     assert.equal(result.allowed, true);
   }
+});
+
+test("CORS no permite todos los orígenes cuando se envían cookies", async () => {
+  const options = createCorsOptions({ ALLOW_ALL_ORIGINS: "true" });
+  const result = await evaluateOrigin(options, "https://sitio-no-autorizado.example");
+
+  assert.equal(result.allowed, undefined);
+  assert.equal(result.error?.message, "No permitido por CORS");
 });
 
 test("CORS configura credenciales, métodos, cabeceras y preflight", () => {
