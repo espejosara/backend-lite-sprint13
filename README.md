@@ -192,6 +192,17 @@ guarda únicamente su `secure_url` en `imageUrl`.
 |---|---|---|
 | GET | `/orders` | Usuario autenticado |
 
+### Pagos
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| POST | `/payments/checkout-session` | Usuario autenticado |
+
+Este endpoint obtiene el carrito de la base de datos, vuelve a validar el stock
+y crea una Stripe Checkout Session con los precios guardados en el backend. El
+cliente recibe `data.url` para redirigir al usuario a la página alojada por
+Stripe. Crear la sesión no vacía el carrito ni crea todavía un pedido pagado.
+
 ## Autenticación
 
 Al registrarse o iniciar sesión, la API guarda el JWT en una cookie `HttpOnly`.

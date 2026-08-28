@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js
 import authRoutes from "./routes/auth.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import ordersRoutes from "./routes/orders.routes.js";
+import paymentsRoutes from "./routes/payments.routes.js";
 import productsRoutes from "./routes/products.routes.js";
 import reviewsRoutes from "./routes/reviews.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
@@ -30,6 +31,7 @@ app.use("/products", reviewsRoutes);
 app.use("/auth", authRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", ordersRoutes);
+app.use("/payments", paymentsRoutes);
 app.use("/wishlist", wishlistRoutes);
 
 app.use(notFoundHandler);
