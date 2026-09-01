@@ -34,6 +34,7 @@ function createFulfillmentDependencies({
 } = {}) {
   const state = {
     order: null,
+    orderCreateArgs: null,
     stock,
     cartDeleted: false,
     orderCreates: 0,
@@ -62,8 +63,10 @@ function createFulfillmentDependencies({
 
   const order = {
     findUnique: async () => state.order,
-    create: async ({ data }) => {
+    create: async (args) => {
       state.orderCreates += 1;
+      state.orderCreateArgs = args;
+      const { data } = args;
       state.order = { id: 41, ...data };
       return state.order;
     },
@@ -176,6 +179,10 @@ test("fulfillCheckoutSession crea el pedido, descuenta stock y vacía el carrito
   assert.deepEqual(result.order.items.create, [
     { productId: 3, quantity: 2, unitPrice: "19.99" },
   ]);
+  assert.deepEqual(state.orderCreateArgs.include, {
+    items: { include: { product: true } },
+  });
+  assert.equal("items" in state.orderCreateArgs, false);
   assert.equal(state.stock, 3);
   assert.equal(state.cartDeleted, true);
   assert.equal(state.orderCreates, 1);

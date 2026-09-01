@@ -232,8 +232,10 @@ export async function fulfillCheckoutSession(
             create: orderItems.map(({ unitAmount, ...item }) => item),
           },
         },
-        items: {
-          include: { product: true },
+        include: {
+          items: {
+            include: { product: true },
+          },
         },
       });
 
