@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  checkout,
   createCartItem,
   deleteCartItem,
   getAllCartsAdmin,
@@ -21,6 +20,5 @@ router.get("/", getCart);
 router.post("/items", createCartItem);
 router.patch("/items/:itemId", updateCartItem);
 router.delete("/items/:itemId", deleteCartItem);
-router.post("/checkout", checkout);
 
 export default router;

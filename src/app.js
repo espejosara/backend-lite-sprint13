@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import express from "express";
 
 import { corsOptions } from "./config/cors.js";
+import { stripeWebhook } from "./controllers/payments.controller.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
@@ -15,6 +16,12 @@ import wishlistRoutes from "./routes/wishlist.routes.js";
 const app = express();
 
 app.use(cors(corsOptions));
+
+app.post(
+  "/payments/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhook,
+);
 
 app.use(express.json());
 app.use(cookieParser());

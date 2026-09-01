@@ -79,13 +79,15 @@ model WishlistItem {
 }
 
 model Order {
-  id        Int        @id @default(autoincrement())
-  userId    Int
-  total     Decimal
-  createdAt DateTime   @default(now())
+  id                      Int       @id @default(autoincrement())
+  userId                  Int
+  total                   Decimal
+  stripeCheckoutSessionId String?   @unique
+  paidAt                  DateTime?
+  createdAt               DateTime  @default(now())
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     OrderItem[]
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
 }
 
 model OrderItem {

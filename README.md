@@ -176,7 +176,6 @@ guarda únicamente su `secure_url` en `imageUrl`.
 | POST | `/cart/items` | Usuario autenticado |
 | PATCH | `/cart/items/:itemId` | Usuario autenticado |
 | DELETE | `/cart/items/:itemId` | Usuario autenticado |
-| POST | `/cart/checkout` | Usuario autenticado |
 | GET | `/cart/all` | Admin |
 
 ### Wishlist
@@ -197,11 +196,34 @@ guarda únicamente su `secure_url` en `imageUrl`.
 | Método | Ruta | Acceso |
 |---|---|---|
 | POST | `/payments/checkout-session` | Usuario autenticado |
+| POST | `/payments/webhook` | Firma de Stripe |
 
 Este endpoint obtiene el carrito de la base de datos, vuelve a validar el stock
 y crea una Stripe Checkout Session con los precios guardados en el backend. El
 cliente recibe `data.url` para redirigir al usuario a la página alojada por
 Stripe. Crear la sesión no vacía el carrito ni crea todavía un pedido pagado.
+
+Stripe confirma el pago enviando `checkout.session.completed` al webhook. Esa
+ruta recibe el cuerpo sin parsear, verifica `stripe-signature` con
+`STRIPE_WEBHOOK_SECRET` y solo entonces crea el pedido, descuenta el stock y
+elimina del carrito los productos comprados dentro de una transacción. El campo
+único `stripeCheckoutSessionId` evita procesar dos veces una misma sesión.
+
+Después de actualizar el esquema, sincroniza Prisma y regenera el cliente:
+
+```bash
+npx prisma db push
+npx prisma generate
+```
+
+Para reenviar webhooks durante el desarrollo:
+
+```bash
+stripe listen --forward-to localhost:3000/payments/webhook
+```
+
+Guarda el valor `whsec_...` mostrado por Stripe CLI en
+`STRIPE_WEBHOOK_SECRET` dentro de `.env`.
 
 ## Autenticación
 

@@ -1,6 +1,5 @@
 import {
   addCartItem,
-  checkoutCart,
   getAllCarts,
   getCartByUserId,
   removeCartItem,
@@ -120,20 +119,6 @@ export async function deleteCartItem(req, res, next) {
     res.json({
       ok: true,
       data: { message: "Item eliminado del carrito" },
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function checkout(req, res, next) {
-  try {
-    const userId = req.user.id;
-    const result = await checkoutCart(userId);
-
-    res.json({
-      ok: true,
-      data: result,
     });
   } catch (error) {
     next(error);
