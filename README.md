@@ -1,6 +1,8 @@
 # backend-lite
 
-Backend final del proyecto desarrollado con Express, Prisma, PostgreSQL y JWT. La API está pensada para conectar con un frontend en React y cubrir autenticación, catálogo de productos, carrito, wishlist, reviews y rutas de administración.
+Backend del e-commerce desarrollado con Express, Prisma y PostgreSQL. La API
+cubre autenticación mediante cookies, catálogo, carrito, wishlist, reviews,
+administración, imágenes en Cloudinary y pagos con Stripe Checkout.
 
 ## Tecnologías
 
@@ -8,9 +10,12 @@ Backend final del proyecto desarrollado con Express, Prisma, PostgreSQL y JWT. L
 - Express
 - Prisma
 - PostgreSQL o Supabase
-- JWT para autenticación
+- JWT almacenado en una cookie `HttpOnly`
 - bcryptjs para proteger contraseñas
-- CORS para integración con frontend local y desplegado
+- Helmet para añadir cabeceras HTTP de seguridad
+- Limitación de intentos en registro e inicio de sesión
+- Cloudinary para imágenes
+- Stripe Checkout y webhooks para pagos
 
 ## Requisitos
 
@@ -28,53 +33,38 @@ npm install
 
 ### Variables de entorno
 
-Crear un archivo `.env` con esta estructura:
+Usa el archivo de ejemplo como plantilla y sustituye únicamente los valores:
 
 ```bash
-PORT=3000
-DATABASE_URL=postgresql://user:password@host:5432/dbname?schema=public
-DIRECT_URL=postgresql://user:password@host:5432/dbname
-JWT_EXPIRES_IN=24h
-JWT_SECRET=tu_clave_secreta
-FRONTEND_URL=https://tu-frontend.com
-ALLOWED_ORIGINS=http://localhost:5173,https://tu-frontend.com
-ALLOW_ALL_ORIGINS=false
-CLOUDINARY_CLOUD_NAME=tu_cloud_name
-CLOUDINARY_API_KEY=tu_api_key
-CLOUDINARY_API_SECRET=tu_api_secret
+cp .env.example .env
 ```
 
-Las credenciales de Cloudinary se obtienen desde el panel de Cloudinary. No deben
+`JWT_SECRET`, las credenciales de Cloudinary y las claves de Stripe nunca deben
 subirse al repositorio ni exponerse en variables `VITE_*` del frontend.
 
 ### Base de datos
 
-Ejecutar el archivo `supabase/setup.sql` en Supabase o en tu gestor SQL local para crear las tablas y relaciones necesarias.
-
-Si usas PostgreSQL local:
+Sincroniza el esquema y genera Prisma Client:
 
 ```bash
-psql -U postgres -d tu_db -f supabase/setup.sql
+npx prisma db push
+npx prisma generate
 ```
 
 ## CORS
 
 El servidor acepta por defecto el frontend local en `http://localhost:5173`.
 
-También se aceptan:
+También admite:
 
 - Orígenes locales con hostname `localhost`, `127.0.0.1` o `::1`.
-- Sitios y deploy previews servidos por HTTPS cuyo hostname termina exactamente en `.netlify.app`.
 - Orígenes exactos definidos mediante `FRONTEND_URL` o `ALLOWED_ORIGINS`.
 - Peticiones sin cabecera `Origin`, como las realizadas por Postman o por herramientas de test.
 
-CORS permite credenciales, los métodos `GET`, `POST`, `PUT`, `PATCH`, `DELETE` y `OPTIONS`, y las cabeceras `Content-Type` y `Authorization`.
-
-Para producción puedes usar una de estas opciones:
-
-- Definir `FRONTEND_URL` con la URL del frontend desplegado.
-- Definir `ALLOWED_ORIGINS` con varias URLs separadas por comas.
-- Usar `ALLOW_ALL_ORIGINS=true` solo de forma temporal durante pruebas.
+CORS permite credenciales, los métodos `GET`, `POST`, `PUT`, `PATCH`, `DELETE`
+y `OPTIONS`, y la cabecera `Content-Type`. Un deploy preview debe añadirse de
+forma explícita a `ALLOWED_ORIGINS`; no se aceptan comodines cuando viajan
+cookies.
 
 ## Scripts
 
@@ -94,10 +84,13 @@ La suite cubre:
 - Registro con hash bcrypt y respuestas sin contraseña.
 - Login correcto y error genérico para credenciales inválidas.
 - Autenticación JWT y autorización por rol `admin`.
+- Cookies `HttpOnly`, logout y restauración de sesión.
 - Listado, creación, edición y eliminación de productos.
 - Validaciones de los datos de producto.
 - Actualización de cantidades, control de stock y propiedad del carrito.
 - Eliminación completa de líneas del carrito.
+- Creación segura de Stripe Checkout Sessions.
+- Firma, idempotencia y transacción del webhook de Stripe.
 
 Ejecutar una sola vez:
 
@@ -131,7 +124,7 @@ src/
   middlewares/
   lib/
 prisma/
-supabase/
+test/
 ```
 
 ## API
@@ -247,6 +240,15 @@ previews que deban acceder a la API se añaden explícitamente a esa lista.
 - Tanto un usuario inexistente como una contraseña incorrecta devuelven el mismo error genérico: `Credenciales inválidas`.
 - La contraseña y su hash no se incluyen en las respuestas de la API.
 - El JWT no se incluye en el cuerpo de las respuestas de registro o login.
+
+### Protecciones HTTP
+
+- Helmet añade cabeceras de seguridad y Express no publica `X-Powered-By`.
+- Registro e inicio de sesión limitan por defecto a 10 intentos fallidos cada
+  15 minutos por dirección IP. Los valores pueden ajustarse mediante
+  `AUTH_RATE_LIMIT_WINDOW_MS` y `AUTH_RATE_LIMIT_MAX`.
+- Los errores internos no exponen detalles sensibles cuando
+  `NODE_ENV=production`.
 - Las cuentas que existían antes de incorporar bcrypt fueron migradas en la base de datos actual. Si se importa otra base de datos antigua, sus contraseñas también deberán migrarse o restablecerse.
 
 ## Auditoría de dependencias

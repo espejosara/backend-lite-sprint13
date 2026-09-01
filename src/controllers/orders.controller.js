@@ -5,11 +5,11 @@ export async function getOrders(req, res, next) {
     const userId = req.user.id;
     const orders = await getOrdersByUserId(userId);
 
-    res.json({
-      ok: true,
+    return res.json({
+      success: true,
       data: orders,
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }

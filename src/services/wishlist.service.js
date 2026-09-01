@@ -1,7 +1,7 @@
 import prisma from "../lib/prisma.js";
 
 export async function getWishlistByUserId(userId) {
-  return await prisma.wishlistItem.findMany({
+  return prisma.wishlistItem.findMany({
     where: { userId },
     include: { product: true },
     orderBy: { productId: "asc" },
@@ -19,8 +19,10 @@ export async function toggleWishlistItem(userId, productId) {
     throw error;
   }
 
-  const existingItem = await prisma.wishlistItem.findFirst({
-    where: { userId, productId },
+  const existingItem = await prisma.wishlistItem.findUnique({
+    where: {
+      userId_productId: { userId, productId },
+    },
   });
 
   if (existingItem) {

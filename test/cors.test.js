@@ -78,6 +78,6 @@ test("CORS configura credenciales, métodos, cabeceras y preflight", () => {
 
   assert.equal(options.credentials, true);
   assert.deepEqual(options.methods, ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
-  assert.deepEqual(options.allowedHeaders, ["Content-Type", "Authorization"]);
+  assert.deepEqual(options.allowedHeaders, ["Content-Type"]);
   assert.equal(options.optionsSuccessStatus, 204);
 });

@@ -1,6 +1,7 @@
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import express from "express";
+import helmet from "helmet";
 
 import { corsOptions } from "./config/cors.js";
 import { stripeWebhook } from "./controllers/payments.controller.js";
@@ -15,6 +16,13 @@ import wishlistRoutes from "./routes/wishlist.routes.js";
 
 const app = express();
 
+app.disable("x-powered-by");
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
+app.use(helmet());
 app.use(cors(corsOptions));
 
 app.post(

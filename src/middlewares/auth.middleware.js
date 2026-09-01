@@ -1,5 +1,5 @@
-import { verifyToken } from "../lib/jwt.js";
 import { getAuthCookieName } from "../config/auth-cookie.js";
+import { verifyToken } from "../lib/jwt.js";
 
 const authenticateToken = (req, res, next) => {
   const token = req.cookies?.[getAuthCookieName()];

@@ -1,44 +1,42 @@
+import { parsePositiveInteger } from "../lib/validation.js";
 import {
   getWishlistByUserId,
   toggleWishlistItem,
 } from "../services/wishlist.service.js";
-
-const toNumber = (value) => Number(value);
 
 export async function getWishlist(req, res, next) {
   try {
     const userId = req.user.id;
     const wishlist = await getWishlistByUserId(userId);
 
-    res.json({
-      ok: true,
+    return res.json({
+      success: true,
       data: wishlist,
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
 export async function toggleWishlist(req, res, next) {
   try {
     const userId = req.user.id;
-    const productId = toNumber(req.params.productId);
+    const productId = parsePositiveInteger(req.params.productId);
 
-    if (Number.isNaN(productId)) {
-      res.status(400).json({
-        ok: false,
+    if (productId === null) {
+      return res.status(400).json({
+        success: false,
         error: "productId inválido",
       });
-      return;
     }
 
     const result = await toggleWishlistItem(userId, productId);
 
-    res.json({
-      ok: true,
+    return res.json({
+      success: true,
       data: result,
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }

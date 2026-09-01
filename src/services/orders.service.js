@@ -26,16 +26,8 @@ export function formatOrderWithProducts(order) {
   };
 }
 
-export async function getOrdersByUserId(userId) {
-  if (typeof prisma.order?.findMany !== "function") {
-    const error = new Error(
-      "El modelo Order no está disponible en Prisma Client. Ejecuta: npx prisma generate y reinicia el servidor.",
-    );
-    error.status = 500;
-    throw error;
-  }
-
-  const orders = await prisma.order.findMany({
+export async function getOrdersByUserId(userId, db = prisma) {
+  const orders = await db.order.findMany({
     where: { userId },
     include: {
       items: {

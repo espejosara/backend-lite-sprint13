@@ -3,6 +3,7 @@ import { getStripeClient } from "../lib/stripe.js";
 
 const DEFAULT_FRONTEND_URL = "http://localhost:5173";
 const DEFAULT_CURRENCY = "eur";
+const MAX_CHECKOUT_LINE_ITEMS = 100;
 
 function createServiceError(status, message) {
   const error = new Error(message);
@@ -86,6 +87,13 @@ export async function createCheckoutSession(
     throw createServiceError(400, "El carrito está vacío");
   }
 
+  if (items.length > MAX_CHECKOUT_LINE_ITEMS) {
+    throw createServiceError(
+      400,
+      `Stripe admite un máximo de ${MAX_CHECKOUT_LINE_ITEMS} productos diferentes por pago`,
+    );
+  }
+
   for (const item of items) {
     if (!Number.isInteger(item.quantity) || item.quantity < 1) {
       throw createServiceError(400, "El carrito contiene una cantidad no válida");
@@ -122,4 +130,3 @@ export async function createCheckoutSession(
     url: session.url,
   };
 }
-

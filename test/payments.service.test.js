@@ -108,6 +108,24 @@ test("createCheckoutSession rechaza un carrito vacío", async () => {
   );
 });
 
+test("createCheckoutSession rechaza más de cien productos diferentes", async () => {
+  const tooManyItems = Array.from({ length: 101 }, (_, index) => ({
+    ...cartItems[0],
+    id: index + 1,
+    productId: index + 1,
+    product: {
+      ...cartItems[0].product,
+      id: index + 1,
+    },
+  }));
+  const { dependencies } = createDependencies(tooManyItems);
+
+  await assert.rejects(
+    () => createCheckoutSession(user, dependencies),
+    (error) => error.status === 400 && error.message.includes("máximo de 100"),
+  );
+});
+
 test("createCheckoutSession vuelve a validar el stock", async () => {
   const withoutStock = [{
     ...cartItems[0],

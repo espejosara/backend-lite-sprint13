@@ -1,3 +1,4 @@
+import { parsePositiveInteger } from "../lib/validation.js";
 import {
   createProduct,
   deleteProductById,
@@ -6,8 +7,6 @@ import {
   updateProductById,
 } from "../services/products.service.js";
 import { uploadProductImage } from "../services/cloudinary.service.js";
-
-const parseId = (value) => Number(value);
 
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
 
@@ -97,9 +96,9 @@ const getProducts = async (req, res, next) => {
 
 const getProductById = async (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
+    const id = parsePositiveInteger(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (id === null) {
       return res.status(400).json({
         success: false,
         error: "ID de producto inválido",
@@ -160,9 +159,9 @@ const createProductAdmin = async (req, res, next) => {
 
 const updateProductAdmin = async (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
+    const id = parsePositiveInteger(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (id === null) {
       return res.status(400).json({
         success: false,
         error: "ID de producto inválido",
@@ -215,9 +214,9 @@ const updateProductAdmin = async (req, res, next) => {
 
 const deleteProductAdmin = async (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
+    const id = parsePositiveInteger(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (id === null) {
       return res.status(400).json({
         success: false,
         error: "ID de producto inválido",

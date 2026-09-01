@@ -5,9 +5,16 @@ const notFoundHandler = (req, res) => {
   });
 };
 
-const errorHandler = (err, req, res, next) => {
-  const status = err.status || 500;
-  const message = err.message || "Error interno del servidor";
+const errorHandler = (err, req, res, _next) => {
+  const status = err.status || err.statusCode || 500;
+  const exposeMessage = status < 500 || process.env.NODE_ENV !== "production";
+  const message = exposeMessage
+    ? err.message || "Error interno del servidor"
+    : "Error interno del servidor";
+
+  if (status >= 500) {
+    console.error(err);
+  }
 
   return res.status(status).json({
     success: false,

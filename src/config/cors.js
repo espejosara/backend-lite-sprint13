@@ -1,5 +1,5 @@
 const CORS_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
-const CORS_ALLOWED_HEADERS = ["Content-Type", "Authorization"];
+const CORS_ALLOWED_HEADERS = ["Content-Type"];
 const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 function toOrigin(value) {
@@ -41,7 +41,9 @@ export function createCorsOptions(environment = process.env) {
       try {
         parsedOrigin = new URL(origin);
       } catch {
-        callback(new Error("Origen no válido"));
+        const error = new Error("Origen no válido");
+        error.status = 403;
+        callback(error);
         return;
       }
 
@@ -53,7 +55,9 @@ export function createCorsOptions(environment = process.env) {
         return;
       }
 
-      callback(new Error("No permitido por CORS"));
+      const error = new Error("No permitido por CORS");
+      error.status = 403;
+      callback(error);
     },
     credentials: true,
     methods: CORS_METHODS,

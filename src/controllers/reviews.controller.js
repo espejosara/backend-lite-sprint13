@@ -1,15 +1,14 @@
+import { parsePositiveInteger } from "../lib/validation.js";
 import {
   createReviewForProduct,
   findReviewsByProductId,
 } from "../services/reviews.service.js";
 
-const parseId = (value) => Number(value);
-
 const getReviewsByProductId = async (req, res, next) => {
   try {
-    const productId = parseId(req.params.id);
+    const productId = parsePositiveInteger(req.params.id);
 
-    if (Number.isNaN(productId)) {
+    if (productId === null) {
       return res.status(400).json({
         success: false,
         error: "ID de producto inválido",
@@ -29,18 +28,18 @@ const getReviewsByProductId = async (req, res, next) => {
 
 const createReview = async (req, res, next) => {
   try {
-    const productId = parseId(req.params.id);
-    const rating = parseId(req.body.rating);
+    const productId = parsePositiveInteger(req.params.id);
+    const rating = parsePositiveInteger(req.body?.rating);
     const comment = typeof req.body.comment === "string" ? req.body.comment.trim() : "";
 
-    if (Number.isNaN(productId)) {
+    if (productId === null) {
       return res.status(400).json({
         success: false,
         error: "ID de producto inválido",
       });
     }
 
-    if (Number.isNaN(rating) || rating < 1 || rating > 5) {
+    if (rating === null || rating > 5) {
       return res.status(400).json({
         success: false,
         error: "La valoración debe estar entre 1 y 5",

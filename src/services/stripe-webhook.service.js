@@ -126,6 +126,35 @@ async function retrieveCheckoutSession(sessionId, stripe) {
   };
 }
 
+async function removePurchasedItemsFromCart(tx, userId, orderItems) {
+  for (const item of orderItems) {
+    const cartItem = await tx.cartItem.findUnique({
+      where: {
+        userId_productId: {
+          userId,
+          productId: item.productId,
+        },
+      },
+    });
+
+    if (!cartItem) {
+      continue;
+    }
+
+    if (cartItem.quantity > item.quantity) {
+      await tx.cartItem.update({
+        where: { id: cartItem.id },
+        data: { quantity: cartItem.quantity - item.quantity },
+      });
+      continue;
+    }
+
+    await tx.cartItem.delete({
+      where: { id: cartItem.id },
+    });
+  }
+}
+
 export async function fulfillCheckoutSession(
   sessionId,
   {
@@ -161,63 +190,72 @@ export async function fulfillCheckoutSession(
     throw createServiceError(400, "El total de Stripe no coincide con sus productos");
   }
 
-  return db.$transaction(async (tx) => {
-    const orderProcessedInsideTransaction = await tx.order.findUnique({
-      where: { stripeCheckoutSessionId: session.id },
-    });
-
-    if (orderProcessedInsideTransaction) {
-      return {
-        status: "already_processed",
-        order: orderProcessedInsideTransaction,
-      };
-    }
-
-    for (const item of orderItems) {
-      const updatedProduct = await tx.product.updateMany({
-        where: {
-          id: item.productId,
-          stock: { gte: item.quantity },
-        },
-        data: {
-          stock: { decrement: item.quantity },
-        },
+  try {
+    return await db.$transaction(async (tx) => {
+      const orderProcessedInsideTransaction = await tx.order.findUnique({
+        where: { stripeCheckoutSessionId: session.id },
       });
 
-      if (updatedProduct.count === 0) {
-        throw createServiceError(
-          409,
-          `Stock insuficiente para confirmar el producto ${item.productId}`,
-        );
+      if (orderProcessedInsideTransaction) {
+        return {
+          status: "already_processed",
+          order: orderProcessedInsideTransaction,
+        };
       }
-    }
 
-    const order = await tx.order.create({
-      data: {
-        userId,
-        total: minorUnitsToDecimal(session.amount_total),
-        stripeCheckoutSessionId: session.id,
-        paidAt: new Date(),
-        items: {
-          create: orderItems.map(({ unitAmount, ...item }) => item),
+      for (const item of orderItems) {
+        const updatedProduct = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stock: { gte: item.quantity },
+          },
+          data: {
+            stock: { decrement: item.quantity },
+          },
+        });
+
+        if (updatedProduct.count === 0) {
+          throw createServiceError(
+            409,
+            `Stock insuficiente para confirmar el producto ${item.productId}`,
+          );
+        }
+      }
+
+      const order = await tx.order.create({
+        data: {
+          userId,
+          total: minorUnitsToDecimal(session.amount_total),
+          stripeCheckoutSessionId: session.id,
+          paidAt: new Date(),
+          items: {
+            create: orderItems.map(({ unitAmount, ...item }) => item),
+          },
         },
-      },
-      include: {
         items: {
           include: { product: true },
         },
-      },
+      });
+
+      await removePurchasedItemsFromCart(tx, userId, orderItems);
+
+      return { status: "created", order };
+    });
+  } catch (error) {
+    if (error.code !== "P2002") {
+      throw error;
+    }
+
+    const concurrentlyCreatedOrder = await db.order.findUnique({
+      where: { stripeCheckoutSessionId: session.id },
     });
 
-    await tx.cartItem.deleteMany({
-      where: {
-        userId,
-        productId: { in: [...new Set(orderItems.map((item) => item.productId))] },
-      },
-    });
+    if (!concurrentlyCreatedOrder) {
+      throw error;
+    }
 
-    return { status: "created", order };
-  });
+    return { status: "already_processed", order: concurrentlyCreatedOrder };
+  }
 }
 
 export async function processStripeEvent(event, dependencies) {
@@ -227,4 +265,3 @@ export async function processStripeEvent(event, dependencies) {
 
   return fulfillCheckoutSession(event.data.object.id, dependencies);
 }
-

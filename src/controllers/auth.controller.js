@@ -1,13 +1,13 @@
 import {
-  getProfileByUserId,
-  loginUser,
-  registerUser,
-} from "../services/auth.service.js";
-import {
   createAuthCookieOptions,
   createClearAuthCookieOptions,
   getAuthCookieName,
 } from "../config/auth-cookie.js";
+import {
+  getProfileByUserId,
+  loginUser,
+  registerUser,
+} from "../services/auth.service.js";
 
 const sendAuthenticatedUser = (res, status, payload) => {
   res.cookie(

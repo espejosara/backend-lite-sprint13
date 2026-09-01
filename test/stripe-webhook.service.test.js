@@ -27,7 +27,11 @@ function createSignedEvent(type = "checkout.session.completed") {
   return { stripe, payload: Buffer.from(payload), signature };
 }
 
-function createFulfillmentDependencies({ stock = 5, paymentStatus = "paid" } = {}) {
+function createFulfillmentDependencies({
+  stock = 5,
+  paymentStatus = "paid",
+  cartQuantity = 2,
+} = {}) {
   const state = {
     order: null,
     stock,
@@ -35,6 +39,10 @@ function createFulfillmentDependencies({ stock = 5, paymentStatus = "paid" } = {
     orderCreates: 0,
     stockUpdates: 0,
     stripeRetrieves: 0,
+    cartItem: cartQuantity === null
+      ? null
+      : { id: 10, userId: 7, productId: 3, quantity: cartQuantity },
+    cartUpdatedQuantity: null,
   };
 
   const lineItems = {
@@ -76,9 +84,17 @@ function createFulfillmentDependencies({ stock = 5, paymentStatus = "paid" } = {
       },
     },
     cartItem: {
-      deleteMany: async () => {
+      findUnique: async () => state.cartItem,
+      update: async ({ data }) => {
+        state.cartItem = { ...state.cartItem, ...data };
+        state.cartUpdatedQuantity = data.quantity;
+        return state.cartItem;
+      },
+      delete: async () => {
         state.cartDeleted = true;
-        return { count: 1 };
+        const deletedItem = state.cartItem;
+        state.cartItem = null;
+        return deletedItem;
       },
     },
   };
@@ -179,6 +195,18 @@ test("fulfillCheckoutSession procesa una sesión repetida una sola vez", async (
   assert.equal(state.stock, 3);
 });
 
+test("fulfillCheckoutSession conserva unidades añadidas después de abrir Stripe", async () => {
+  const { dependencies, state } = createFulfillmentDependencies({
+    cartQuantity: 3,
+  });
+
+  await fulfillCheckoutSession("cs_test_cart_changed", dependencies);
+
+  assert.equal(state.cartDeleted, false);
+  assert.equal(state.cartUpdatedQuantity, 1);
+  assert.equal(state.cartItem.quantity, 1);
+});
+
 test("fulfillCheckoutSession repite la comprobación de idempotencia dentro de la transacción", async () => {
   const { dependencies, state } = createFulfillmentDependencies();
   let lookupCount = 0;
@@ -202,6 +230,34 @@ test("fulfillCheckoutSession repite la comprobación de idempotencia dentro de l
   assert.equal(state.orderCreates, 0);
   assert.equal(state.stockUpdates, 0);
   assert.equal(state.cartDeleted, false);
+});
+
+test("fulfillCheckoutSession resuelve una colisión simultánea del índice único", async () => {
+  const { dependencies } = createFulfillmentDependencies();
+  const concurrentOrder = {
+    id: 43,
+    stripeCheckoutSessionId: "cs_test_unique_race",
+  };
+  let lookupCount = 0;
+
+  dependencies.db.order.findUnique = async () => {
+    lookupCount += 1;
+    return lookupCount === 1 ? null : concurrentOrder;
+  };
+  dependencies.db.$transaction = async () => {
+    const error = new Error("Unique constraint failed");
+    error.code = "P2002";
+    throw error;
+  };
+
+  const result = await fulfillCheckoutSession(
+    "cs_test_unique_race",
+    dependencies,
+  );
+
+  assert.equal(result.status, "already_processed");
+  assert.equal(result.order.id, 43);
+  assert.equal(lookupCount, 2);
 });
 
 test("fulfillCheckoutSession no confirma pagos pendientes", async () => {

@@ -91,8 +91,8 @@ const loginUser = async ({ email, password }, db = prisma) => {
   return buildAuthResponse(user);
 };
 
-const getProfileByUserId = async (userId) => {
-  const user = await prisma.user.findUnique({
+const getProfileByUserId = async (userId, db = prisma) => {
+  const user = await db.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -107,31 +107,27 @@ const getProfileByUserId = async (userId) => {
     throw createServiceError(404, "Usuario no encontrado");
   }
 
-  const wishlistItems = await prisma.wishlistItem.findMany({
-    where: { userId },
-    include: { product: true },
-    orderBy: { createdAt: "desc" },
-    take: 6,
-  });
-
-  const hasOrderModel = typeof prisma.order?.count === "function";
-
-  const [ordersCount, lastOrder] = hasOrderModel
-    ? await Promise.all([
-        prisma.order.count({ where: { userId } }),
-        prisma.order.findFirst({
-          where: { userId },
-          orderBy: { createdAt: "desc" },
+  const [wishlistItems, wishlistCount, ordersCount, lastOrder] = await Promise.all([
+    db.wishlistItem.findMany({
+      where: { userId },
+      include: { product: true },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
+    db.wishlistItem.count({ where: { userId } }),
+    db.order.count({ where: { userId } }),
+    db.order.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        items: {
           include: {
-            items: {
-              include: {
-                product: true,
-              },
-            },
+            product: true,
           },
-        }),
-      ])
-    : [0, null];
+        },
+      },
+    }),
+  ]);
 
   const formattedLastOrder = lastOrder ? formatOrderWithProducts(lastOrder) : null;
 
@@ -149,7 +145,7 @@ const getProfileByUserId = async (userId) => {
       memberSince: user.createdAt,
     },
     wishlist: {
-      count: wishlistItems.length,
+      count: wishlistCount,
       items: wishlistItems,
     },
     checkout: {

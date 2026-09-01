@@ -32,6 +32,3 @@ export function createClearAuthCookieOptions(environment = process.env) {
   const { maxAge, ...options } = createAuthCookieOptions(environment);
   return options;
 }
-
-export const AUTH_COOKIE_NAME = getAuthCookieName();
-

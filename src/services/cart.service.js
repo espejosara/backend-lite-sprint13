@@ -1,7 +1,7 @@
 import prisma from "../lib/prisma.js";
 
 export async function getCartByUserId(userId) {
-  return await prisma.cartItem.findMany({
+  return prisma.cartItem.findMany({
     where: { userId },
     include: { product: true },
     orderBy: { productId: "asc" },
@@ -9,7 +9,7 @@ export async function getCartByUserId(userId) {
 }
 
 export async function getAllCarts() {
-  return await prisma.cartItem.findMany({
+  return prisma.cartItem.findMany({
     include: {
       user: {
         select: {
@@ -25,14 +25,14 @@ export async function getAllCarts() {
   });
 }
 
-export async function addCartItem({ userId, productId, quantity = 1 }) {
-  if (quantity < 1) {
+export async function addCartItem({ userId, productId, quantity = 1 }, db = prisma) {
+  if (!Number.isInteger(quantity) || quantity < 1) {
     const error = new Error("La cantidad debe ser mayor a 0");
     error.status = 400;
     throw error;
   }
 
-  const product = await prisma.product.findUnique({
+  const product = await db.product.findUnique({
     where: { id: productId },
   });
 
@@ -48,19 +48,29 @@ export async function addCartItem({ userId, productId, quantity = 1 }) {
     throw error;
   }
 
-  const existingItem = await prisma.cartItem.findFirst({
-    where: { userId, productId },
+  const existingItem = await db.cartItem.findUnique({
+    where: {
+      userId_productId: { userId, productId },
+    },
   });
 
   if (existingItem) {
-    return await prisma.cartItem.update({
+    const nextQuantity = existingItem.quantity + quantity;
+
+    if (nextQuantity > product.stock) {
+      const error = new Error(`Stock insuficiente. Disponible: ${product.stock}`);
+      error.status = 400;
+      throw error;
+    }
+
+    return db.cartItem.update({
       where: { id: existingItem.id },
-      data: { quantity: existingItem.quantity + quantity },
+      data: { quantity: nextQuantity },
       include: { product: true },
     });
   }
 
-  return await prisma.cartItem.create({
+  return db.cartItem.create({
     data: { userId, productId, quantity },
     include: { product: true },
   });
@@ -77,7 +87,7 @@ export async function removeCartItem({ userId, itemId }, db = prisma) {
     throw error;
   }
 
-  return await db.cartItem.delete({
+  return db.cartItem.delete({
     where: { id: itemId },
   });
 }
@@ -108,7 +118,7 @@ export async function updateCartItemQuantity({ userId, itemId, quantity }, db = 
     throw error;
   }
 
-  return await db.cartItem.update({
+  return db.cartItem.update({
     where: { id: itemId },
     data: { quantity },
     include: { product: true },

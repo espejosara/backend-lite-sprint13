@@ -9,7 +9,7 @@ export async function startCheckout(req, res, next) {
     const checkoutSession = await createCheckoutSession(req.user);
 
     return res.status(201).json({
-      ok: true,
+      success: true,
       data: checkoutSession,
     });
   } catch (error) {
