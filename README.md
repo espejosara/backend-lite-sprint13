@@ -189,6 +189,7 @@ guarda únicamente su `secure_url` en `imageUrl`.
 | Método | Ruta | Acceso |
 |---|---|---|
 | POST | `/payments/checkout-session` | Usuario autenticado |
+| GET | `/payments/checkout-session/:sessionId/order` | Usuario autenticado |
 | POST | `/payments/webhook` | Firma de Stripe |
 
 Este endpoint obtiene el carrito de la base de datos, vuelve a validar el stock
@@ -201,6 +202,12 @@ ruta recibe el cuerpo sin parsear, verifica `stripe-signature` con
 `STRIPE_WEBHOOK_SECRET` y solo entonces crea el pedido, descuenta el stock y
 elimina del carrito los productos comprados dentro de una transacción. El campo
 único `stripeCheckoutSessionId` evita procesar dos veces una misma sesión.
+
+La pantalla de retorno puede consultar el pedido mediante el `session_id`. La
+ruta devuelve `202` y `confirmed: false` mientras el webhook sigue pendiente;
+cuando el pedido ya existe devuelve `200`, `confirmed: true` y sus datos. La
+consulta combina la sesión con el usuario autenticado para no exponer pedidos
+ajenos.
 
 Después de actualizar el esquema, sincroniza Prisma y regenera el cliente:
 

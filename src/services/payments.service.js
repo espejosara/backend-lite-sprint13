@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 import { getStripeClient } from "../lib/stripe.js";
+import { formatOrderWithProducts } from "./orders.service.js";
 
 const DEFAULT_FRONTEND_URL = "http://localhost:5173";
 const DEFAULT_CURRENCY = "eur";
@@ -29,6 +30,21 @@ function getCurrency(environment) {
   }
 
   return currency;
+}
+
+function normalizeCheckoutSessionId(sessionId) {
+  const normalizedSessionId = typeof sessionId === "string"
+    ? sessionId.trim()
+    : "";
+
+  if (
+    normalizedSessionId.length > 255
+    || !/^cs_[A-Za-z0-9_]+$/.test(normalizedSessionId)
+  ) {
+    throw createServiceError(400, "session_id de Stripe no válido");
+  }
+
+  return normalizedSessionId;
 }
 
 export function priceToMinorUnits(price) {
@@ -129,4 +145,24 @@ export async function createCheckoutSession(
     sessionId: session.id,
     url: session.url,
   };
+}
+
+export async function getCheckoutOrder(
+  { sessionId, userId },
+  db = prisma,
+) {
+  const normalizedSessionId = normalizeCheckoutSessionId(sessionId);
+  const order = await db.order.findFirst({
+    where: {
+      stripeCheckoutSessionId: normalizedSessionId,
+      userId,
+    },
+    include: {
+      items: {
+        include: { product: true },
+      },
+    },
+  });
+
+  return order ? formatOrderWithProducts(order) : null;
 }

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildStripeLineItems,
   createCheckoutSession,
+  getCheckoutOrder,
   priceToMinorUnits,
 } from "../src/services/payments.service.js";
 
@@ -152,5 +153,68 @@ test("createCheckoutSession rechaza precios inválidos guardados en la base de d
   await assert.rejects(
     () => createCheckoutSession(user, dependencies),
     (error) => error.status === 500 && error.message.includes("precio no válido"),
+  );
+});
+
+test("getCheckoutOrder devuelve únicamente el pedido de la sesión y del usuario", async () => {
+  let receivedQuery;
+  const order = {
+    id: 41,
+    userId: 7,
+    total: "39.98",
+    createdAt: new Date("2026-09-02T10:00:00.000Z"),
+    items: [{
+      id: 51,
+      productId: 3,
+      quantity: 2,
+      unitPrice: "19.99",
+      product: {
+        name: "Libro de arte",
+        imageUrl: "https://example.com/book.jpg",
+      },
+    }],
+  };
+  const db = {
+    order: {
+      findFirst: async (query) => {
+        receivedQuery = query;
+        return order;
+      },
+    },
+  };
+
+  const result = await getCheckoutOrder({
+    sessionId: "cs_test_123",
+    userId: 7,
+  }, db);
+
+  assert.deepEqual(receivedQuery.where, {
+    stripeCheckoutSessionId: "cs_test_123",
+    userId: 7,
+  });
+  assert.equal(result.id, 41);
+  assert.equal(result.total, 39.98);
+  assert.equal(result.products[0].subtotal, 39.98);
+});
+
+test("getCheckoutOrder no revela pedidos de otra sesión o usuario", async () => {
+  const db = {
+    order: {
+      findFirst: async () => null,
+    },
+  };
+
+  const result = await getCheckoutOrder({
+    sessionId: "cs_test_private",
+    userId: 8,
+  }, db);
+
+  assert.equal(result, null);
+});
+
+test("getCheckoutOrder rechaza identificadores de sesión manipulados", async () => {
+  await assert.rejects(
+    () => getCheckoutOrder({ sessionId: "../otra-ruta", userId: 7 }),
+    (error) => error.status === 400 && error.message.includes("session_id"),
   );
 });
