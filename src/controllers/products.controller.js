@@ -7,6 +7,7 @@ import {
   updateProductById,
 } from "../services/products.service.js";
 import { uploadProductImage } from "../services/cloudinary.service.js";
+import { getRecommendationsByUserId } from "../services/recommendations.service.js";
 
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
 
@@ -88,6 +89,19 @@ const getProducts = async (req, res, next) => {
     return res.json({
       success: true,
       data: products,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getProductRecommendations = async (req, res, next) => {
+  try {
+    const recommendations = await getRecommendationsByUserId(req.user.id);
+
+    return res.json({
+      success: true,
+      data: recommendations,
     });
   } catch (error) {
     return next(error);
@@ -247,6 +261,7 @@ export {
   createProductAdmin,
   deleteProductAdmin,
   getProductById,
+  getProductRecommendations,
   getProducts,
   updateProductAdmin,
   validateProductPayload,

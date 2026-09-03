@@ -143,6 +143,7 @@ test/
 | Método | Ruta | Acceso |
 |---|---|---|
 | GET | `/products` | Público |
+| GET | `/products/recommendations` | Usuario autenticado |
 | GET | `/products/:id` | Público |
 | POST | `/products` | Admin |
 | PUT | `/products/:id` | Admin |
@@ -153,6 +154,11 @@ Las operaciones `POST /products` y `PUT /products/:id` aceptan
 JPG, PNG, WebP, GIF y AVIF hasta 5 MB. La imagen es obligatoria al crear y
 opcional al editar. El backend la sube a la carpeta `products` de Cloudinary y
 guarda únicamente su `secure_url` en `imageUrl`.
+
+Las recomendaciones usan las categorías de compras, favoritos y carrito del
+usuario, excluyen productos que ya aparecen en esas secciones o no tienen stock y desempatan por
+valoración y novedad. Si todavía no existen señales personales, la API devuelve
+productos destacados disponibles.
 
 ### Reviews
 

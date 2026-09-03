@@ -3,6 +3,7 @@ import {
   createProductAdmin,
   deleteProductAdmin,
   getProductById,
+  getProductRecommendations,
   getProducts,
   updateProductAdmin,
 } from "../controllers/products.controller.js";
@@ -15,6 +16,7 @@ import { parseProductImage } from "../middlewares/upload.middleware.js";
 const router = express.Router();
 
 router.get("/", getProducts);
+router.get("/recommendations", authenticateToken, getProductRecommendations);
 router.get("/:id", getProductById);
 router.post(
   "/",
