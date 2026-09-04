@@ -4,6 +4,11 @@ Backend del e-commerce desarrollado con Express, Prisma y PostgreSQL. La API
 cubre autenticación mediante cookies, catálogo, carrito, wishlist, reviews,
 administración, imágenes en Cloudinary y pagos con Stripe Checkout.
 
+## Repositorios del proyecto
+
+- Backend: [espejosara/backend-lite-sprint13](https://github.com/espejosara/backend-lite-sprint13)
+- Frontend: [espejosara/clase13project](https://github.com/espejosara/clase13project)
+
 ## Tecnologías
 
 - Node.js
@@ -55,11 +60,14 @@ npx prisma generate
 
 El servidor acepta por defecto el frontend local en `http://localhost:5173`.
 
-También admite:
+Fuera de producción también admite:
 
 - Orígenes locales con hostname `localhost`, `127.0.0.1` o `::1`.
-- Orígenes exactos definidos mediante `FRONTEND_URL` o `ALLOWED_ORIGINS`.
 - Peticiones sin cabecera `Origin`, como las realizadas por Postman o por herramientas de test.
+
+En todos los entornos admite los orígenes exactos definidos mediante
+`FRONTEND_URL` o `ALLOWED_ORIGINS`. En producción no se permite localhost salvo
+que se configure explícitamente.
 
 CORS permite credenciales, los métodos `GET`, `POST`, `PUT`, `PATCH`, `DELETE`
 y `OPTIONS`, y la cabecera `Content-Type`. Un deploy preview debe añadirse de
@@ -71,8 +79,11 @@ cookies.
 ```bash
 npm run dev
 npm start
+npm run check
 npm test
 npm run test:watch
+npm run prisma:generate
+npm run prisma:push
 ```
 
 ## Pruebas automatizadas
@@ -112,6 +123,10 @@ npm run dev
 
 Servidor disponible en `http://localhost:3000`.
 
+`GET /health` comprueba también la conexión con PostgreSQL. Devuelve `200`
+cuando la API está preparada y `503` cuando la base de datos no está disponible;
+Render usa esta ruta como health check.
+
 ## Estructura del proyecto
 
 ```text
@@ -128,6 +143,12 @@ test/
 ```
 
 ## API
+
+### Estado del servicio
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/health` | Público |
 
 ### Autenticación
 
@@ -154,6 +175,10 @@ Las operaciones `POST /products` y `PUT /products/:id` aceptan
 JPG, PNG, WebP, GIF y AVIF hasta 5 MB. La imagen es obligatoria al crear y
 opcional al editar. El backend la sube a la carpeta `products` de Cloudinary y
 guarda únicamente su `secure_url` en `imageUrl`.
+
+Si falla la escritura en PostgreSQL después de una subida, el backend elimina
+la imagen recién creada. Al sustituir o borrar un producto también intenta
+eliminar el recurso anterior, evitando archivos huérfanos en Cloudinary.
 
 Las recomendaciones usan las categorías de compras, favoritos y carrito del
 usuario, excluyen productos que ya aparecen en esas secciones o no tienen stock y desempatan por
@@ -303,10 +328,26 @@ El sistema maneja dos roles:
 
 ## Despliegue en Render
 
-1. Conectar el repositorio en Render.
-2. Configurar el build command como `npm install`.
-3. Configurar el start command como `npm start` o `node src/server.js`.
-4. Añadir las variables de entorno del proyecto.
+El repositorio incluye [`render.yaml`](./render.yaml) con runtime, build, start,
+health check y todas las variables necesarias declaradas sin incluir secretos.
+
+1. Crear un Blueprint en Render y conectar este repositorio.
+2. Completar todas las variables marcadas con `sync: false`.
+3. Sincronizar el esquema una primera vez con `npm run prisma:push` desde un
+   entorno seguro conectado a la base de datos.
+4. Registrar en Stripe el webhook HTTPS
+   `https://<backend>/payments/webhook` y guardar su secreto en
+   `STRIPE_WEBHOOK_SECRET`.
+5. Configurar `FRONTEND_URL` y `ALLOWED_ORIGINS` con la URL HTTPS exacta de
+   Netlify, sin barra final.
+
+En producción el servidor valida al arrancar la conexión, JWT, frontend,
+Cloudinary y Stripe. Si falta alguna variable o `JWT_SECRET` tiene menos de 32
+caracteres, falla de forma explícita en vez de arrancar parcialmente.
+
+El workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) ejecuta las
+pruebas y valida Prisma en cada push y pull request. Render despliega únicamente
+cuando esos checks terminan correctamente.
 
 ## Notas para la revisión
 

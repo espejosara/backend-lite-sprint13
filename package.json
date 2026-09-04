@@ -2,11 +2,14 @@
   "name": "backend-lite",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "API de e-commerce con autenticación por cookies, Cloudinary y Stripe",
   "main": "index.js",
   "scripts": {
     "dev": "node src/server.js",
     "start": "node src/server.js",
+    "check": "npm test && npx prisma validate",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
     "test": "node --test",
     "test:watch": "node --test --watch",
     "verify:cloudinary": "node scripts/verify-cloudinary.js"
