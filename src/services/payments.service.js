@@ -54,7 +54,13 @@ export function priceToMinorUnits(price) {
     throw createServiceError(500, "Hay un producto con un precio no válido");
   }
 
-  return Math.round((numericPrice + Number.EPSILON) * 100);
+  const minorUnits = Math.round((numericPrice + Number.EPSILON) * 100);
+
+  if (!Number.isSafeInteger(minorUnits)) {
+    throw createServiceError(500, "Hay un producto con un precio fuera de rango");
+  }
+
+  return minorUnits;
 }
 
 export function buildStripeLineItems(items, currency = DEFAULT_CURRENCY) {

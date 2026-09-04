@@ -66,6 +66,13 @@ test("priceToMinorUnits convierte euros a céntimos", () => {
   assert.equal(priceToMinorUnits(10), 1000);
 });
 
+test("priceToMinorUnits rechaza importes fuera del rango seguro", () => {
+  assert.throws(
+    () => priceToMinorUnits(Number.MAX_VALUE),
+    /precio fuera de rango/,
+  );
+});
+
 test("buildStripeLineItems conserva producto, precio y cantidad del servidor", () => {
   const [lineItem] = buildStripeLineItems(cartItems);
 
