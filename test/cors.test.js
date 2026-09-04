@@ -78,6 +78,20 @@ test("CORS permite orígenes exactos configurados por entorno", async () => {
   }
 });
 
+test("CORS admite CLIENT_URL como alias de FRONTEND_URL", async () => {
+  const options = createCorsOptions({
+    NODE_ENV: "production",
+    CLIENT_URL: "https://mi-tienda.netlify.app",
+  });
+  const result = await evaluateOrigin(
+    options,
+    "https://mi-tienda.netlify.app",
+  );
+
+  assert.equal(result.error, null);
+  assert.equal(result.allowed, true);
+});
+
 test("CORS no permite todos los orígenes cuando se envían cookies", async () => {
   const options = createCorsOptions({ ALLOW_ALL_ORIGINS: "true" });
   const result = await evaluateOrigin(options, "https://sitio-no-autorizado.example");

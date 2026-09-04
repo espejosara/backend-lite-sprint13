@@ -69,6 +69,10 @@ En todos los entornos admite los orígenes exactos definidos mediante
 `FRONTEND_URL` o `ALLOWED_ORIGINS`. En producción no se permite localhost salvo
 que se configure explícitamente.
 
+Por compatibilidad con despliegues anteriores, `CLIENT_URL` también se acepta
+como alias de `FRONTEND_URL`, tanto para CORS como para las URLs de retorno de
+Stripe. Para instalaciones nuevas se recomienda `FRONTEND_URL`.
+
 CORS permite credenciales, los métodos `GET`, `POST`, `PUT`, `PATCH`, `DELETE`
 y `OPTIONS`, y la cabecera `Content-Type`. Un deploy preview debe añadirse de
 forma explícita a `ALLOWED_ORIGINS`; no se aceptan comodines cuando viajan

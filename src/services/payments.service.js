@@ -13,7 +13,9 @@ function createServiceError(status, message) {
 }
 
 function getFrontendUrl(environment) {
-  const configuredUrl = environment.FRONTEND_URL || DEFAULT_FRONTEND_URL;
+  const configuredUrl = environment.FRONTEND_URL
+    || environment.CLIENT_URL
+    || DEFAULT_FRONTEND_URL;
 
   try {
     return new URL(configuredUrl).origin;

@@ -107,6 +107,19 @@ test("createCheckoutSession crea una sesión de pago con el carrito de la base d
   );
 });
 
+test("createCheckoutSession admite CLIENT_URL para el retorno de Stripe", async () => {
+  const { dependencies, getCheckoutPayload } = createDependencies();
+  dependencies.environment.CLIENT_URL = dependencies.environment.FRONTEND_URL;
+  delete dependencies.environment.FRONTEND_URL;
+
+  await createCheckoutSession(user, dependencies);
+
+  assert.equal(
+    getCheckoutPayload().success_url,
+    "https://tienda.example.com/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+  );
+});
+
 test("createCheckoutSession rechaza un carrito vacío", async () => {
   const { dependencies } = createDependencies([]);
 

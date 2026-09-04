@@ -2,7 +2,6 @@ const REQUIRED_PRODUCTION_VARIABLES = [
   "DATABASE_URL",
   "DIRECT_URL",
   "JWT_SECRET",
-  "FRONTEND_URL",
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
@@ -36,6 +35,11 @@ export function validateEnvironment(environment = process.env) {
   const missingVariables = REQUIRED_PRODUCTION_VARIABLES.filter(
     (variableName) => !hasValue(environment[variableName]),
   );
+  const frontendUrl = environment.FRONTEND_URL || environment.CLIENT_URL;
+
+  if (!hasValue(frontendUrl)) {
+    missingVariables.push("FRONTEND_URL (o CLIENT_URL)");
+  }
 
   if (missingVariables.length > 0) {
     throw new Error(
@@ -53,7 +57,7 @@ export function validateEnvironment(environment = process.env) {
     "DIRECT_URL",
     ["postgresql:", "postgres:"],
   );
-  assertValidUrl(environment.FRONTEND_URL, "FRONTEND_URL", ["https:"]);
+  assertValidUrl(frontendUrl, "FRONTEND_URL", ["https:"]);
 
   if (environment.JWT_SECRET.trim().length < 32) {
     throw new Error("JWT_SECRET debe tener al menos 32 caracteres en producción");

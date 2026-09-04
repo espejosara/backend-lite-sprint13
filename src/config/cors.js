@@ -15,6 +15,7 @@ function toOrigin(value) {
 function getConfiguredOrigins(environment) {
   const values = [
     environment.FRONTEND_URL,
+    environment.CLIENT_URL,
     ...(environment.ALLOWED_ORIGINS?.split(",") ?? []),
   ];
 

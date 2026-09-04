@@ -48,3 +48,12 @@ test("validateEnvironment valida URLs HTTPS y la fortaleza del JWT", () => {
     /JWT_SECRET debe tener al menos 32 caracteres/,
   );
 });
+
+test("validateEnvironment admite CLIENT_URL como alias compatible", () => {
+  const { FRONTEND_URL, ...environmentWithoutFrontendUrl } = validProductionEnvironment;
+
+  assert.doesNotThrow(() => validateEnvironment({
+    ...environmentWithoutFrontendUrl,
+    CLIENT_URL: FRONTEND_URL,
+  }));
+});
