@@ -2,6 +2,8 @@ import cloudinary, {
   getMissingCloudinaryVariables,
 } from "../config/cloudinary.js";
 
+const PRODUCT_IMAGE_FOLDER = "products";
+
 const createServiceError = (status, message, cause) => {
   const error = new Error(message, cause ? { cause } : undefined);
   error.status = status;
@@ -27,7 +29,7 @@ const uploadProductImage = async (buffer, client = cloudinary) => {
   return new Promise((resolve, reject) => {
     const stream = client.uploader.upload_stream(
       {
-        folder: "products",
+        folder: PRODUCT_IMAGE_FOLDER,
         resource_type: "image",
       },
       (error, result) => {
@@ -55,4 +57,85 @@ const uploadProductImage = async (buffer, client = cloudinary) => {
   });
 };
 
-export { uploadProductImage };
+function getProductImagePublicId(imageUrl, environment = process.env) {
+  if (typeof imageUrl !== "string" || !imageUrl.trim()) {
+    return null;
+  }
+
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(imageUrl);
+  } catch {
+    return null;
+  }
+
+  const cloudName = environment.CLOUDINARY_CLOUD_NAME?.trim();
+  const segments = parsedUrl.pathname.split("/").filter(Boolean);
+  const uploadSegmentIndex = segments.findIndex(
+    (segment, index) => segment === "upload" && segments[index - 1] === "image",
+  );
+
+  if (
+    parsedUrl.protocol !== "https:"
+    || parsedUrl.hostname !== "res.cloudinary.com"
+    || !cloudName
+    || segments[0] !== cloudName
+    || uploadSegmentIndex === -1
+  ) {
+    return null;
+  }
+
+  const publicIdSegments = segments.slice(uploadSegmentIndex + 1);
+
+  if (/^v\d+$/.test(publicIdSegments[0])) {
+    publicIdSegments.shift();
+  }
+
+  const encodedPublicId = publicIdSegments.join("/");
+  let publicId;
+
+  try {
+    publicId = decodeURIComponent(encodedPublicId).replace(/\.[^/.]+$/, "");
+  } catch {
+    return null;
+  }
+
+  return publicId.startsWith(`${PRODUCT_IMAGE_FOLDER}/`) ? publicId : null;
+}
+
+async function deleteProductImage(publicId, client = cloudinary) {
+  if (
+    typeof publicId !== "string"
+    || !publicId.startsWith(`${PRODUCT_IMAGE_FOLDER}/`)
+  ) {
+    return { result: "skipped" };
+  }
+
+  if (client === cloudinary) {
+    const missingVariables = getMissingCloudinaryVariables();
+
+    if (missingVariables.length > 0) {
+      throw createServiceError(
+        503,
+        `Cloudinary no está configurado. Faltan: ${missingVariables.join(", ")}`,
+      );
+    }
+  }
+
+  try {
+    return await client.uploader.destroy(publicId, {
+      invalidate: true,
+      resource_type: "image",
+    });
+  } catch (cause) {
+    throw createServiceError(502, "No se pudo eliminar la imagen de Cloudinary", cause);
+  }
+}
+
+export {
+  deleteProductImage,
+  getProductImagePublicId,
+  PRODUCT_IMAGE_FOLDER,
+  uploadProductImage,
+};

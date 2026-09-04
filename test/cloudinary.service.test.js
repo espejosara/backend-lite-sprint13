@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import test from "node:test";
-import { uploadProductImage } from "../src/services/cloudinary.service.js";
+import {
+  deleteProductImage,
+  getProductImagePublicId,
+  uploadProductImage,
+} from "../src/services/cloudinary.service.js";
 
 const createCloudinaryClient = ({ error = null, result = null } = {}) => {
   let receivedOptions = null;
@@ -68,4 +72,66 @@ test("uploadProductImage convierte errores de Cloudinary en un error 502", async
       && error.cause?.message === "Credenciales inválidas"
     ),
   );
+});
+
+test("getProductImagePublicId extrae únicamente imágenes de products de la cuenta", () => {
+  const environment = { CLOUDINARY_CLOUD_NAME: "demo" };
+
+  assert.equal(
+    getProductImagePublicId(
+      "https://res.cloudinary.com/demo/image/upload/v123/products/figura.webp",
+      environment,
+    ),
+    "products/figura",
+  );
+  assert.equal(
+    getProductImagePublicId(
+      "https://res.cloudinary.com/otra/image/upload/v123/products/figura.webp",
+      environment,
+    ),
+    null,
+  );
+  assert.equal(
+    getProductImagePublicId(
+      "https://res.cloudinary.com/demo/image/upload/v123/avatars/admin.webp",
+      environment,
+    ),
+    null,
+  );
+});
+
+test("deleteProductImage invalida la imagen eliminada", async () => {
+  let destroyArguments = null;
+  const client = {
+    uploader: {
+      async destroy(...args) {
+        destroyArguments = args;
+        return { result: "ok" };
+      },
+    },
+  };
+
+  const result = await deleteProductImage("products/figura", client);
+
+  assert.deepEqual(destroyArguments, ["products/figura", {
+    invalidate: true,
+    resource_type: "image",
+  }]);
+  assert.deepEqual(result, { result: "ok" });
+});
+
+test("deleteProductImage no elimina recursos fuera de products", async () => {
+  let destroyCalled = false;
+  const client = {
+    uploader: {
+      async destroy() {
+        destroyCalled = true;
+      },
+    },
+  };
+
+  assert.deepEqual(await deleteProductImage("avatars/admin", client), {
+    result: "skipped",
+  });
+  assert.equal(destroyCalled, false);
 });

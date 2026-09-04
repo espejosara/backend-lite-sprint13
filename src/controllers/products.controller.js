@@ -6,10 +6,24 @@ import {
   getAllProducts,
   updateProductById,
 } from "../services/products.service.js";
-import { uploadProductImage } from "../services/cloudinary.service.js";
+import {
+  deleteProductImage,
+  getProductImagePublicId,
+  uploadProductImage,
+} from "../services/cloudinary.service.js";
 import { getRecommendationsByUserId } from "../services/recommendations.service.js";
 
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
+
+async function cleanupProductImage(publicId) {
+  if (!publicId) return;
+
+  try {
+    await deleteProductImage(publicId);
+  } catch (error) {
+    console.error("No se pudo limpiar una imagen de producto en Cloudinary", error);
+  }
+}
 
 const validateProductPayload = (
   payload,
@@ -160,7 +174,14 @@ const createProductAdmin = async (req, res, next) => {
     const uploadResult = await uploadProductImage(req.file.buffer);
     data.imageUrl = uploadResult.secure_url;
 
-    const product = await createProduct(data);
+    let product;
+
+    try {
+      product = await createProduct(data);
+    } catch (error) {
+      await cleanupProductImage(uploadResult.public_id);
+      throw error;
+    }
 
     return res.status(201).json({
       success: true,
@@ -210,12 +231,28 @@ const updateProductAdmin = async (req, res, next) => {
       });
     }
 
+    let uploadedPublicId = null;
+
     if (req.file) {
       const uploadResult = await uploadProductImage(req.file.buffer);
       data.imageUrl = uploadResult.secure_url;
+      uploadedPublicId = uploadResult.public_id;
     }
 
-    const product = await updateProductById(id, data);
+    let product;
+
+    try {
+      product = await updateProductById(id, data);
+    } catch (error) {
+      await cleanupProductImage(uploadedPublicId);
+      throw error;
+    }
+
+    if (uploadedPublicId) {
+      await cleanupProductImage(
+        getProductImagePublicId(existingProduct.imageUrl),
+      );
+    }
 
     return res.json({
       success: true,
@@ -247,6 +284,9 @@ const deleteProductAdmin = async (req, res, next) => {
     }
 
     await deleteProductById(id);
+    await cleanupProductImage(
+      getProductImagePublicId(existingProduct.imageUrl),
+    );
 
     return res.json({
       success: true,
