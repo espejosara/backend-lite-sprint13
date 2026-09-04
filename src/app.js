@@ -4,6 +4,7 @@ import express from "express";
 import helmet from "helmet";
 
 import { corsOptions } from "./config/cors.js";
+import { getHealth } from "./controllers/health.controller.js";
 import { stripeWebhook } from "./controllers/payments.controller.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -33,6 +34,8 @@ app.post(
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.get("/health", getHealth);
 
 app.get("/", (req, res) => {
   res.json({

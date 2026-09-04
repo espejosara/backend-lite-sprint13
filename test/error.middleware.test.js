@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { errorHandler } from "../src/middlewares/error.middleware.js";
+import {
+  errorHandler,
+  normalizeHttpError,
+} from "../src/middlewares/error.middleware.js";
 
 function createResponse() {
   return {
@@ -43,4 +46,33 @@ test("errorHandler oculta detalles internos en producción", (t) => {
 
   assert.equal(response.statusCode, 500);
   assert.equal(response.body.error, "Error interno del servidor");
+});
+
+test("normalizeHttpError traduce conflictos y registros ausentes de Prisma", () => {
+  assert.deepEqual(normalizeHttpError({ code: "P2002" }), {
+    status: 409,
+    message: "Ya existe un registro con esos datos",
+  });
+  assert.deepEqual(normalizeHttpError({ code: "P2003" }), {
+    status: 409,
+    message: "No se puede completar la operación porque el registro está en uso",
+  });
+  assert.deepEqual(normalizeHttpError({ code: "P2025" }), {
+    status: 404,
+    message: "El recurso solicitado no existe",
+  });
+});
+
+test("normalizeHttpError responde 400 a JSON mal formado", () => {
+  assert.deepEqual(normalizeHttpError({ type: "entity.parse.failed" }), {
+    status: 400,
+    message: "El cuerpo JSON no es válido",
+  });
+});
+
+test("normalizeHttpError ignora códigos HTTP fuera de rango", () => {
+  assert.deepEqual(normalizeHttpError({ status: 999, message: "fallo" }), {
+    status: 500,
+    message: "fallo",
+  });
 });

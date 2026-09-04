@@ -28,6 +28,7 @@ function isLocalOrigin(url) {
 
 export function createCorsOptions(environment = process.env) {
   const configuredOrigins = getConfiguredOrigins(environment);
+  const allowLocalOrigins = environment.NODE_ENV !== "production";
 
   return {
     origin(origin, callback) {
@@ -48,7 +49,7 @@ export function createCorsOptions(environment = process.env) {
       }
 
       const isAllowed = configuredOrigins.has(parsedOrigin.origin)
-        || isLocalOrigin(parsedOrigin);
+        || (allowLocalOrigins && isLocalOrigin(parsedOrigin));
 
       if (isAllowed) {
         callback(null, true);

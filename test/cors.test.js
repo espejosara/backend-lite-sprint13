@@ -34,6 +34,19 @@ test("CORS permite localhost y loopback con distintos puertos", async () => {
   }
 });
 
+test("CORS rechaza localhost en producción si no está configurado", async () => {
+  const options = createCorsOptions({
+    NODE_ENV: "production",
+    FRONTEND_URL: "https://shop.example.com",
+  });
+
+  const result = await evaluateOrigin(options, "http://localhost:5173");
+
+  assert.equal(result.allowed, undefined);
+  assert.equal(result.error?.status, 403);
+  assert.equal(result.error?.message, "No permitido por CORS");
+});
+
 test("CORS rechaza sitios de Netlify que no estén configurados", async () => {
   const options = createCorsOptions({});
   const origins = [
