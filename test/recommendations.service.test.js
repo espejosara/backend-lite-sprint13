@@ -71,6 +71,7 @@ test("usa productos destacados cuando el usuario todavía no tiene señales", as
   assert.deepEqual(result.categories, []);
   assert.deepEqual(result.items.map((item) => item.id), [8, 9]);
   assert.deepEqual(receivedProductQuery.where, { stock: { gt: 0 } });
+  assert.deepEqual(receivedProductQuery.orderBy[0], { isFeatured: "desc" });
   assert.equal(receivedProductQuery.take, 4);
 });
 

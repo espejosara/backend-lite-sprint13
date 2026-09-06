@@ -21,7 +21,18 @@ const findProductById = async (id, db = prisma) => {
   return product ? normalizeProduct(product) : null;
 };
 
-const createProduct = async ({ name, category, description, price, stock, imageUrl }, db = prisma) => {
+const createProduct = async (
+  {
+    name,
+    category,
+    description,
+    price,
+    stock,
+    imageUrl,
+    isFeatured = false,
+  },
+  db = prisma,
+) => {
   const product = await db.product.create({
     data: {
       name,
@@ -30,6 +41,7 @@ const createProduct = async ({ name, category, description, price, stock, imageU
       price,
       stock,
       imageUrl,
+      isFeatured,
     },
   });
 

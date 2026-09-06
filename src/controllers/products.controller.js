@@ -15,6 +15,12 @@ import { getRecommendationsByUserId } from "../services/recommendations.service.
 
 const normalizeText = (value) => (typeof value === "string" ? value.trim() : "");
 
+const normalizeBoolean = (value) => {
+  if (value === true || value === "true") return true;
+  if (value === false || value === "false") return false;
+  return null;
+};
+
 async function cleanupProductImage(publicId) {
   if (!publicId) return;
 
@@ -35,6 +41,9 @@ const validateProductPayload = (
   const imageUrl = normalizeText(payload.imageUrl);
   const price = payload.price !== undefined ? Number(payload.price) : undefined;
   const stock = payload.stock !== undefined ? Number(payload.stock) : undefined;
+  const isFeatured = payload.isFeatured !== undefined
+    ? normalizeBoolean(payload.isFeatured)
+    : undefined;
 
   if (!partial || payload.name !== undefined) {
     if (!name) {
@@ -72,6 +81,10 @@ const validateProductPayload = (
     }
   }
 
+  if (payload.isFeatured !== undefined && isFeatured === null) {
+    return { error: "El estado destacado debe ser verdadero o falso" };
+  }
+
   const data = {};
 
   if (!partial || payload.name !== undefined) {
@@ -91,6 +104,9 @@ const validateProductPayload = (
   }
   if (!partial || payload.stock !== undefined) {
     data.stock = stock;
+  }
+  if (payload.isFeatured !== undefined) {
+    data.isFeatured = isFeatured;
   }
 
   return { data };

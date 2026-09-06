@@ -180,6 +180,10 @@ JPG, PNG, WebP, GIF y AVIF hasta 5 MB. La imagen es obligatoria al crear y
 opcional al editar. El backend la sube a la carpeta `products` de Cloudinary y
 guarda únicamente su `secure_url` en `imageUrl`.
 
+El campo booleano `isFeatured` permite elegir desde el panel administrativo
+qué productos aparecen en la sección de destacados de la portada. Por defecto,
+los productos nuevos no se muestran como destacados.
+
 Si falla la escritura en PostgreSQL después de una subida, el backend elimina
 la imagen recién creada. Al sustituir o borrar un producto también intenta
 eliminar el recurso anterior, evitando archivos huérfanos en Cloudinary.

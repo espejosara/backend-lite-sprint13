@@ -9,6 +9,7 @@ const validProduct = {
   price: "24.99",
   stock: "5",
   imageUrl: " https://example.com/product.png ",
+  isFeatured: "true",
 };
 
 test("validateProductPayload normaliza un producto válido", () => {
@@ -21,6 +22,7 @@ test("validateProductPayload normaliza un producto válido", () => {
     price: 24.99,
     stock: 5,
     imageUrl: "https://example.com/product.png",
+    isFeatured: true,
   });
 });
 
@@ -48,5 +50,19 @@ test("validateProductPayload permite actualizaciones parciales", () => {
   assert.deepEqual(
     validateProductPayload({ stock: 9 }, { partial: true }),
     { data: { stock: 9 } },
+  );
+});
+
+test("validateProductPayload normaliza el estado destacado enviado como multipart", () => {
+  assert.deepEqual(
+    validateProductPayload({ isFeatured: "false" }, { partial: true }),
+    { data: { isFeatured: false } },
+  );
+});
+
+test("validateProductPayload rechaza estados destacados no booleanos", () => {
+  assert.equal(
+    validateProductPayload({ isFeatured: "sí" }, { partial: true }).error,
+    "El estado destacado debe ser verdadero o falso",
   );
 });

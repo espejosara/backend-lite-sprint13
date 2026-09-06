@@ -16,6 +16,7 @@ const product = {
   price: "24.99",
   stock: 5,
   imageUrl: "https://example.com/product.png",
+  isFeatured: true,
 };
 
 test("getAllProducts lista productos y normaliza el precio", async () => {
@@ -50,6 +51,7 @@ test("createProduct envía los datos a Prisma", async () => {
     price: 24.99,
     stock: product.stock,
     imageUrl: product.imageUrl,
+    isFeatured: product.isFeatured,
   };
 
   const result = await createProduct(payload, db);

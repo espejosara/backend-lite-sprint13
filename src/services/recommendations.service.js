@@ -150,7 +150,11 @@ export async function getRecommendationsByUserId(
           ? { id: { notIn: [...excludedProductIds, ...selectedIds] } }
           : {}),
       },
-      orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
+      orderBy: [
+        { isFeatured: "desc" },
+        { rating: "desc" },
+        { createdAt: "desc" },
+      ],
       take: recommendationLimit - recommendations.length,
     });
 
