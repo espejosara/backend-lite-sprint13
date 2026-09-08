@@ -1,5 +1,8 @@
 node_modules
+# Variables de entorno locales; solo se versiona la plantilla.
 .env
+.env.*
+!.env.example
 .DS_Store
 npm-debug.log*
 dist
