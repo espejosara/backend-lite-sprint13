@@ -32,7 +32,6 @@ El backend gestiona autenticación por cookies, autorización por rol, catálogo
 - [Estado de dependencias](#estado-de-dependencias)
 - [Resolución de problemas](#resolución-de-problemas)
 - [Mejoras futuras](#mejoras-futuras)
-- [Limitaciones actuales](#limitaciones-actuales)
 - [Decisiones técnicas](#decisiones-técnicas)
 
 ## Credenciales de prueba para evaluación
@@ -424,11 +423,6 @@ Una vez completadas las funcionalidades principales, se plantean las siguientes 
 - Completar el resumen desplegable del checkout en móvil.
 - Añadir facturas PDF y gestión de devoluciones.
 - Incorporar cupones y promociones validados por el backend.
-
-## Limitaciones actuales
-
-- El stock se comprueba al iniciar el checkout y se descuenta al confirmar el pago, pero no se reserva mientras el usuario paga. Si otra compra consume las existencias, la transacción puede fallar después de un pago confirmado. Este caso requiere gestión manual mientras no exista un flujo automatizado de reserva o reembolso.
-- Las líneas del pedido conservan cantidad y precio de compra, pero siguen vinculadas al catálogo. Si cambia el nombre o la imagen del producto, el historial puede mostrar esos datos actualizados.
 
 ## Decisiones técnicas
 
