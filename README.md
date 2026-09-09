@@ -42,7 +42,7 @@ Cuentas facilitadas para revisar la aplicación desplegada desde el frontend:
 | Rol | Email | Contraseña |
 | --- | --- | --- |
 | Administrador | `sara@hotmail.com` | `123456` |
-| Usuario estándar | `saratest@mail.com` | `mR6KBdjpa6TTKSF` |
+| Usuario estándar | `Sara@test.com` | `mR6KBdjpa6TTKSF` |
 
 **ADMIN** tiene acceso a `/admin`, alta y edición de productos, subida de imágenes y eliminación de productos sin pedidos asociados. **USER** puede gestionar su carrito, favoritos, reseñas y compras. Los valores almacenados por la API son `admin` y `user`, en minúsculas.
 
